@@ -7,9 +7,11 @@ import { PixelPanel } from "./pixel-panel";
 import { FactionIcon } from "./faction-icon";
 import { StatBar } from "./stat-bar";
 import { CurrencyDisplay } from "./currency-display";
+import { Button } from "@/components/ui/button";
 import { FACTIONS } from "@/lib/game/constants";
 import { maxHp, critChance, evasionChance, attackSpeedMultiplier } from "@/lib/game/stats";
-import { Loader2, Trophy, Skull, Swords } from "lucide-react";
+import { STAT_INFO, STAT_KEYS, type StatKey } from "@/lib/game/prestige";
+import { Loader2, Trophy, Skull, Swords, Plus } from "lucide-react";
 
 interface HistoryEntry {
   id: string;
@@ -24,7 +26,7 @@ interface HistoryEntry {
   createdAt: string;
 }
 
-export function ProfileView() {
+export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void }) {
   const { player } = useGameStore();
   const { t, locale } = useI18n();
 
@@ -44,15 +46,6 @@ export function ProfileView() {
   const evasion = evasionChance(player.agi);
   const atkSpeed = attackSpeedMultiplier(player.agi);
   const xpForNext = Math.floor(100 * Math.pow(player.level, 1.5));
-
-  const stats = [
-    { key: "str", label: t("profile.str"), value: player.str, color: "var(--rust)" },
-    { key: "agi", label: t("profile.agi"), value: player.agi, color: "var(--accent)" },
-    { key: "end", label: t("profile.end"), value: player.end, color: "var(--tech)" },
-    { key: "int", label: t("profile.int"), value: player.int, color: "#a855f7" },
-    { key: "lck", label: t("profile.lck"), value: player.lck, color: "#f59e0b" },
-    { key: "chr", label: t("profile.chr"), value: player.chr, color: "#ec4899" },
-  ];
 
   const combatStats = [
     { label: t("profile.maxHp"), value: hp, color: "var(--accent)" },
@@ -99,22 +92,36 @@ export function ProfileView() {
 
       {/* Stats */}
       <PixelPanel className="p-3 sm:p-4">
-        <h3 className="font-pixel text-xs sm:text-sm font-bold text-accent uppercase tracking-wider mb-3">
-          {t("profile.stats")}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-pixel text-xs sm:text-sm font-bold text-accent uppercase tracking-wider">
+            {t("profile.stats")}
+          </h3>
+          {player.statPoints > 0 && onAllocateClick && (
+            <Button
+              onClick={onAllocateClick}
+              className="pixel-button bg-accent text-accent-foreground hover:bg-accent/90 font-pixel uppercase h-8 text-[10px] px-2"
+            >
+              <Plus className="w-3 h-3" />
+              {t("stats.available", { n: player.statPoints })}
+            </Button>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {stats.map((s) => (
-            <div key={s.key}>
-              <StatBar
-                label={s.label}
-                value={s.value}
-                max={50}
-                color={s.color}
-                size="sm"
-                showValue
-              />
-            </div>
-          ))}
+          {STAT_KEYS.map((key: StatKey) => {
+            const info = STAT_INFO[key];
+            return (
+              <div key={key}>
+                <StatBar
+                  label={info.name[locale as "tr" | "en"]}
+                  value={player[key]}
+                  max={50}
+                  color={info.color}
+                  size="sm"
+                  showValue
+                />
+              </div>
+            );
+          })}
         </div>
       </PixelPanel>
 

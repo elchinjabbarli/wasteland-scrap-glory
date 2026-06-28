@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-export type GameView = "dashboard" | "battle" | "inventory" | "profile";
+export type GameView = "dashboard" | "battle" | "inventory" | "profile" | "crafting" | "upgrade" | "market" | "prestige";
 
 export interface PlayerData {
   id: string;

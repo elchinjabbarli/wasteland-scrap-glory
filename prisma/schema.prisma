@@ -1,5 +1,6 @@
 // Wasteland: Scrap & Glory - Prisma Schema
 // Faz 1: Karakter, Inventory, Temel PvP
+// Faz 2: Crafting, Upgrade, Karaborsa, Prestige
 
 generator client {
   provider = "prisma-client-js"
@@ -46,6 +47,11 @@ model Player {
   state         String   @default("IDLE") // IDLE | IN_COMBAT | INJURED | ...
   injuredUntil  DateTime? @map("injured_until")
 
+  // Faz 2: Günlük ödüller
+  dailyChestClaimedAt DateTime? @map("daily_chest_claimed_at")
+  adWatchCount       Int      @default(0) @map("ad_watch_count")
+  adWatchResetAt     DateTime? @map("ad_watch_reset_at")
+
   // İstatistikler
   battlesTotal  Int      @default(0) @map("battles_total")
   battlesWon    Int      @default(0) @map("battles_won")
@@ -59,6 +65,11 @@ model Player {
   loadout       Loadout?
   combatsAsA    CombatLog[]
   sessions      Session[]
+  craftingJobs  CraftingJob[]
+  marketListings MarketListing[]
+  tradeOffersSent   TradeOffer[] @relation("trade_offers_sent")
+  tradeOffersReceived TradeOffer[] @relation("trade_offers_received")
+  prestigeLogs  PrestigeLog[]
 
   @@map("players")
 }
@@ -140,6 +151,9 @@ model Item {
   state         String   @default("IN_INVENTORY") // IN_INVENTORY | EQUIPPED | LISTED | LOCKED | BROKEN
   protected     Boolean  @default(false) // Permadeath riskinden korumalı mı
 
+  // Faz 2: Market
+  listedPrice   Int?     @map("listed_price") // ilan fiyatı (kayıt için)
+
   icon          String   @default("sword")
 
   createdAt     DateTime @default(now()) @map("created_at")
@@ -149,6 +163,8 @@ model Item {
   loadoutArmor      Loadout? @relation("LoadoutArmor")
   loadoutSideTool   Loadout? @relation("LoadoutSideTool")
   loadoutCompanion  Loadout? @relation("LoadoutCompanion")
+  marketListing     MarketListing?
+  tradeOfferItems   TradeOfferItem[]
 
   @@index([ownerId])
   @@index([templateId])
@@ -232,4 +248,128 @@ model Session {
   @@index([token])
   @@index([playerId])
   @@map("sessions")
+}
+
+// ============================================================
+// FAZ 2: CRAFTING JOB - Üretim işi (gerçek zamanlı süre)
+// ============================================================
+model CraftingJob {
+  id            String   @id @default(cuid())
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  recipeRarity  String   @map("recipe_rarity") // COMMON | RARE | EPIC | LEGENDARY
+  slot          String   @default("WEAPON") // hangi slot için üretim (random veya seçim)
+
+  startedAt     DateTime @map("started_at")
+  finishesAt    DateTime @map("finishes_at")
+  durationMinutes Int    @map("duration_minutes")
+
+  // Malzeme maliyeti (kayıt için)
+  scrapCost     Int      @default(0) @map("scrap_cost")
+  electronicCost Int     @default(0) @map("electronic_cost")
+  techPartCost  Int      @default(0) @map("tech_part_cost")
+  crystalDustCost Int    @default(0) @map("crystal_dust_cost")
+  successChance Float    @default(1.0) @map("success_chance")
+
+  status        String   @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | FAILED | CANCELLED
+  resultItemId  String?  @map("result_item_id") // başarıyla üretilen eşya
+  completedAt   DateTime? @map("completed_at")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([playerId])
+  @@index([status])
+  @@map("crafting_jobs")
+}
+
+// ============================================================
+// FAZ 2: MARKET LISTING - Karaborsa ilanı
+// ============================================================
+model MarketListing {
+  id            String   @id @default(cuid())
+  sellerId      String   @map("seller_id")
+  seller        Player   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  itemId        String   @unique @map("item_id")
+  item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  price         Int      // satış fiyatı
+  currency      String   @default("SCRAP") // SCRAP | TECH_PART
+
+  listedAt      DateTime @map("listed_at")
+  expiresAt     DateTime @map("expires_at")
+  durationHours Int      @default(1) @map("duration_hours")
+
+  status        String   @default("ACTIVE") // ACTIVE | SOLD | CANCELLED | EXPIRED
+  buyerId       String?  @map("buyer_id")
+  soldAt        DateTime? @map("sold_at")
+  soldPrice     Int?     @map("sold_price") // fiyata komisyon dahil öncesi
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([currency])
+  @@map("market_listings")
+}
+
+// ============================================================
+// FAZ 2: TRADE OFFER - İki oyuncu arası takas teklifi
+// ============================================================
+model TradeOffer {
+  id            String   @id @default(cuid())
+  fromPlayerId  String   @map("from_player_id")
+  fromPlayer    Player   @relation("trade_offers_sent", fields: [fromPlayerId], references: [id], onDelete: Cascade)
+  toPlayerId    String   @map("to_player_id")
+  toPlayer      Player   @relation("trade_offers_received", fields: [toPlayerId], references: [id], onDelete: Cascade)
+
+  status        String   @default("PENDING") // PENDING | ACCEPTED | REJECTED | CANCELLED | EXPIRED
+  expiresAt     DateTime @map("expires_at")
+
+  items         TradeOfferItem[]
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  resolvedAt    DateTime? @map("resolved_at")
+
+  @@index([fromPlayerId])
+  @@index([toPlayerId])
+  @@index([status])
+  @@map("trade_offers")
+}
+
+model TradeOfferItem {
+  id            String   @id @default(cuid())
+  tradeOfferId  String   @map("trade_offer_id")
+  tradeOffer    TradeOffer @relation(fields: [tradeOfferId], references: [id], onDelete: Cascade)
+
+  itemId        String   @map("item_id")
+  item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  // Bu item teklif edilen mi (offered) yoksa talep edilen mi (requested)?
+  side          String   // OFFERED | REQUESTED
+
+  @@index([tradeOfferId])
+  @@index([itemId])
+  @@map("trade_offer_items")
+}
+
+// ============================================================
+// FAZ 2: PRESTIGE LOG - Prestige geçmişi (audit)
+// ============================================================
+model PrestigeLog {
+  id            String   @id @default(cuid())
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  prestigeLevel Int      @map("prestige_level") // ulaşılan yeni prestige seviyesi
+  previousLevel Int      @map("previous_level") // prestige öncesi player level
+  itemsLost     Int      @default(0) @map("items_lost") // silinen eşya sayısı
+  scrapLost     Int      @default(0) @map("scrap_lost")
+  electronicLost Int     @default(0) @map("electronic_lost")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([playerId])
+  @@map("prestige_logs")
 }

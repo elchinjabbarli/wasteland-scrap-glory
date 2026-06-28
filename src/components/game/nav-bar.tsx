@@ -2,7 +2,7 @@
 
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
-import { Home, Swords, Backpack, User } from "lucide-react";
+import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavBarProps {
@@ -10,21 +10,25 @@ interface NavBarProps {
 }
 
 export function NavBar({ className }: NavBarProps) {
-  const { view, setView } = useGameStore();
+  const { view, setView, player } = useGameStore();
   const { t } = useI18n();
 
-  const items: { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
+  const items: { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number }[] = [
     { key: "dashboard", icon: Home, label: t("nav.home") },
     { key: "battle", icon: Swords, label: t("nav.battle") },
     { key: "inventory", icon: Backpack, label: t("nav.inventory") },
-    { key: "profile", icon: User, label: t("nav.profile") },
+    { key: "crafting", icon: Hammer, label: t("nav.crafting") },
+    { key: "upgrade", icon: Sparkles, label: t("nav.upgrade") },
+    { key: "market", icon: Store, label: t("nav.market") },
+    { key: "prestige", icon: Star, label: t("nav.prestige") },
+    { key: "profile", icon: User, label: t("nav.profile"), badge: player?.statPoints ?? 0 },
   ];
 
   return (
     <nav
       className={cn(
         "sticky bottom-0 left-0 right-0 z-50 bg-wasteland-panel/95 backdrop-blur-sm border-t-2 border-wasteland-border",
-        "px-1 py-1.5 flex justify-around items-stretch gap-1",
+        "px-1 py-1.5 flex justify-around items-stretch gap-0.5 overflow-x-auto scrollbar-thin",
         "shadow-[0_-4px_0_0_oklch(0_0_0/0.5)]",
         className
       )}
@@ -37,7 +41,7 @@ export function NavBar({ className }: NavBarProps) {
             key={it.key}
             onClick={() => setView(it.key)}
             className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-2 px-1 transition-all border-2",
+              "flex flex-col items-center gap-0.5 py-1.5 px-2 transition-all border-2 flex-shrink-0 min-w-[60px]",
               "pixel-button",
               active
                 ? "bg-primary text-primary-foreground border-primary"
@@ -45,8 +49,15 @@ export function NavBar({ className }: NavBarProps) {
             )}
             style={active ? { boxShadow: "0 0 12px var(--primary)" } : undefined}
           >
-            <it.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", active && "glow-text")} />
-            <span className={cn("font-pixel text-[8px] sm:text-[10px] uppercase tracking-wider", active && "font-bold")}>
+            <div className="relative">
+              <it.icon className={cn("w-4 h-4", active && "glow-text")} />
+              {it.badge && it.badge > 0 ? (
+                <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-accent text-accent-foreground text-[8px] font-bold flex items-center justify-center rounded-full">
+                  {it.badge}
+                </span>
+              ) : null}
+            </div>
+            <span className={cn("font-pixel text-[8px] uppercase tracking-wider", active && "font-bold")}>
               {it.label}
             </span>
           </button>
