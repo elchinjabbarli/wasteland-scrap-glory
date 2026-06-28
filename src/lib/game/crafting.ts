@@ -6,6 +6,7 @@ import { CRAFTING_RECIPES, type CraftingRecipe } from "./stats";
 import { type Rarity, type Slot } from "./constants";
 import { generateItem, ITEM_SEEDS, type GeneratedItem } from "./loot";
 import { getDailyWeather } from "./weather";
+import { getWeeklyMultipliers } from "./weekly-event";
 
 // ============================================================
 // CRAFTING TARİF BİLGİSİ
@@ -102,9 +103,10 @@ export async function startCrafting(
     },
   });
 
-  // İş oluştur — hava olayı süre çarpanı uygula
+  // İş oluştur — hava olayı + haftalık etkinlik süre çarpanı uygula
   const weather = await getDailyWeather();
-  const durationMul = weather.craftingTimeMul;
+  const weekly = await getWeeklyMultipliers();
+  const durationMul = weather.craftingTimeMul * weekly.craftTimeMul;
   const now = new Date();
   const durationMinutes = Math.ceil(recipe.durationMinutes * durationMul);
   const finishesAt = new Date(now.getTime() + durationMinutes * 60 * 1000);

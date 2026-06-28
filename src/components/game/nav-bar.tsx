@@ -2,7 +2,7 @@
 
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
-import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown, Users, Skull, Heart, Globe } from "lucide-react";
+import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown, Users, Skull, Heart, Globe, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavBarProps {
@@ -28,6 +28,7 @@ export function NavBar({ className }: NavBarProps) {
     { key: "achievements", icon: Trophy, label: t("nav.achievements") },
     { key: "leaderboard", icon: Crown, label: t("nav.leaderboard") },
     { key: "social", icon: Heart, label: t("nav.social") },
+    { key: "badges", icon: Award, label: t("nav.badges") },
     { key: "prestige", icon: Star, label: t("nav.prestige") },
     { key: "profile", icon: User, label: t("nav.profile"), badge: player?.statPoints ?? 0 },
   ];

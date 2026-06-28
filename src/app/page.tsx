@@ -22,6 +22,8 @@ import { ClanView } from "@/components/game/clan-view";
 import { RaidView } from "@/components/game/raid-view";
 import { SocialView } from "@/components/game/social-view";
 import { GlobalBossView } from "@/components/game/global-boss-view";
+import { BadgesView } from "@/components/game/badges-view";
+import { WeeklyEventBanner } from "@/components/game/weekly-event-banner";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
 import { WeatherBanner } from "@/components/game/weather-banner";
@@ -173,11 +175,15 @@ export default function HomePage() {
         {view === "raid" && <RaidView />}
         {view === "social" && <SocialView />}
         {view === "globalBoss" && <GlobalBossView />}
+        {view === "badges" && <BadgesView />}
         {view === "profile" && <ProfileView onAllocateClick={() => setShowStats(true)} />}
       </main>
 
       {/* Hava olayı banner — sadece dashboard'da */}
       {view === "dashboard" && <WeatherBanner />}
+
+      {/* Haftalık etkinlik banner — sadece dashboard'da */}
+      {view === "dashboard" && <WeeklyEventBanner />}
 
       {/* Rewards bar — sadece dashboard'da */}
       {view === "dashboard" && <RewardsBar />}
@@ -187,28 +193,32 @@ export default function HomePage() {
   );
 }
 
-function LangToggle({ locale, setLocale, compact = false }: { locale: string; setLocale: (l: "tr" | "en") => void; compact?: boolean }) {
+function LangToggle({ locale, setLocale, compact = false }: { locale: string; setLocale: (l: "tr" | "en" | "ru" | "fa" | "ar" | "es" | "pt") => void; compact?: boolean }) {
+  const langs: { code: "tr" | "en" | "ru" | "fa" | "ar" | "es" | "pt"; label: string }[] = [
+    { code: "tr", label: "TR" },
+    { code: "en", label: "EN" },
+    { code: "ru", label: "RU" },
+    { code: "fa", label: "FA" },
+    { code: "ar", label: "AR" },
+    { code: "es", label: "ES" },
+    { code: "pt", label: "PT" },
+  ];
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 flex-wrap">
       {!compact && (
         <Languages className="w-3 h-3 text-muted-foreground mr-1" />
       )}
-      <Button
-        onClick={() => setLocale("tr")}
-        variant="ghost"
-        size="sm"
-        className={`px-2 py-0.5 h-6 font-pixel text-[9px] uppercase tracking-wider ${locale === "tr" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
-      >
-        TR
-      </Button>
-      <Button
-        onClick={() => setLocale("en")}
-        variant="ghost"
-        size="sm"
-        className={`px-2 py-0.5 h-6 font-pixel text-[9px] uppercase tracking-wider ${locale === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
-      >
-        EN
-      </Button>
+      {langs.map((l) => (
+        <Button
+          key={l.code}
+          onClick={() => setLocale(l.code)}
+          variant="ghost"
+          size="sm"
+          className={`px-1.5 py-0.5 h-6 font-pixel text-[8px] uppercase tracking-wider ${locale === l.code ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          {l.label}
+        </Button>
+      ))}
     </div>
   );
 }

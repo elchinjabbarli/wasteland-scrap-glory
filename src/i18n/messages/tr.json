@@ -452,5 +452,25 @@
     "topContributors": "Top Katkıda Bulunanlar",
     "noContributors": "Henüz katkı yok",
     "rewardInfo": "İlk 100 hasarcıya Legendary eşya (boss yenildiğinde)"
+  },
+  "badges": {
+    "title": "Rozetler & Unvanlar",
+    "subtitle": "Koleksiyonunu tamamla, unvan seç",
+    "unlocked": "Açık Rozet",
+    "unlockedTitles": "Açık Unvan",
+    "badges": "Rozetler",
+    "titles": "Unvanlar",
+    "active": "Aktif",
+    "use": "Kullan"
+  },
+  "weeklyEvent": {
+    "title": "Haftalık Etkinlik",
+    "doubleXp": "Çift XP",
+    "bossBoost": "Boss Boost",
+    "dropFestival": "Drop Festivali",
+    "fastCraft": "Hızlı Crafting"
+  },
+  "nav": {
+    "badges": "Rozetler"
   }
 }

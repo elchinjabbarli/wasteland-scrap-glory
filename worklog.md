@@ -383,3 +383,105 @@ FAZ 5 İÇİN NOT:
 - Haftalık etkinlikler (boss boost, çift XP)
 - Anti-cheat gelişmiş (anormal davranış tespiti)
 - Production deployment (Vercel + Supabase)
+
+---
+Task ID: 5.x
+Agent: main
+Task: Faz 5 Geliştirme - Çoklu Dil, Rozetler, Haftalık Etkinlikler, Polish
+
+Work Log:
+- prisma/schema.prisma: 3 yeni model
+  - PlayerBadge (playerId+badgeCode unique, unlockedAt)
+  - PlayerTitle (playerId+titleCode unique, unlockedAt)
+  - WeeklyEvent (week unique, type, xpMul, bossHpMul, bossRewardMul, dropMul, craftTimeMul)
+  - Player'a activeTitle, tutorialStep eklendi
+  - db:push başarıyla
+
+- src/lib/game/badges.ts:
+  - 10 rozet: first_blood, warrior, killer, legend, explorer, crafter, prestige, eternal, clan_leader, rich
+  - 9 unvan: rookie, scout, warrior, veteran, champion, legend, reborn, slayer, clan_lord
+  - checkAndUnlockBadgesTitles (otomatik tetiklenme)
+  - getPlayerBadgesTitles, setActiveTitle
+
+- src/lib/game/weekly-event.ts:
+  - 4 tip etkinlik: DOUBLE_XP (XP x2), BOSS_BOOST (HP 0.8x, ödül 1.5x), DROP_FESTIVAL (drop 1.5x), FAST_CRAFT (süre 0.5x)
+  - Haftalık rotasyon (week numarasına göre)
+  - Pazar gece yarısı reset
+  - getWeeklyMultipliers (combat/crafting tarafından kullanılır)
+
+- src/lib/telegram.ts: Telegram WebApp entegrasyon hazırlığı
+  - validateInitData (production: gerçek hash, dev: mock)
+  - createMockTelegramUser (dev fallback)
+  - parseStartParam (revenge/join_clan/raid deep links)
+  - loginWithTelegram
+
+- src/lib/game/loot.ts: 25+ yeni ItemTemplate eklendi
+  - WEAPON: fire_katana, ice_spear, poison_bow, tesla_coil, chain_saw, flame_thrower, plasma_cannon, railgun, vibro_dagger
+  - ARMOR: kevlar_vest, radiation_suit, power_armor_mk2, scrap_heavy, stealth_cloak, tesla_shield
+  - SIDE_TOOL: emp_pulse, shield_matrix, adrenaline_shot, cryo_grenade, toxin_vial, heal_drone
+  - COMPANION: war_wolf, laser_turret, mutant_bear, drone_squad, cyber_dog, scorpion_companion
+  - Toplam 50+ eşya şablonu
+
+- Çoklu dil (7 dil + RTL):
+  - src/i18n/messages/{tr,en,ru,fa,ar,es,pt}.json (TR+EN tam, diğerleri EN bazlı)
+  - i18n/request.ts: RTL_LOCALES (ar, fa), isRTL helper, dir state
+  - src/components/game/dir-provider.tsx: html dir/lang dinamik
+  - globals.css: RTL desteği (pixel-panel/button gölge ters yön)
+  - layout.tsx: DirProvider entegre
+  - Dil değiştirici 7 dile çıktı (TR/EN/RU/FA/AR/ES/PT)
+
+- API routes (yeni 4):
+  - /api/player/badges (GET — rozet+unvan listesi, otomatik kontrol)
+  - /api/player/set-title (POST — aktif unvan değiştir)
+  - /api/weekly-event (GET — mevcut etkinlik)
+  - /api/player/tutorial (GET/POST — tutorial step + ödül)
+
+- Backend entegrasyonu:
+  - combat/pvp: weekly XP çarpanı + dropMul + rozet/unvan kontrolü (badge/titles response'a eklendi)
+  - crafting: weekly craftTimeMul uygulanır (FAST_CRAFT haftasında süre yarıya)
+
+- Frontend (yeni 3 view + 1 banner):
+  - badges-view.tsx: 2 tab (Badges/Titles), rozet grid (rarity renkli), unvan seçici, aktif unvan işareti
+  - weekly-event-banner.tsx: dashboard'da haftalık etkinlik banner'ı (çarpanlar)
+  - dir-provider.tsx: html dir/lang dinamik
+- nav-bar.tsx: 16+ sekme (Badges eklendi)
+- page.tsx: BadgesView + WeeklyEventBanner entegre, LangToggle 7 dil
+
+Stage Summary:
+- Faz 5 geliştirme TAMAMLANDI
+- Lint temiz (eslint . hatasız)
+- Tüm Faz 5 API'leri curl ile test edildi (hepsi 200):
+  1. player/badges (10 rozet + 9 unvan listelendi) ✓
+  2. weekly-event (FAST_CRAFT bu hafta, craftTimeMul 0.5) ✓
+  3. player/tutorial (step 0 → step 5, +100 Hurda) ✓
+  4. loot-test (50+ şablondan 10 random eşya) ✓
+- 7 dil destekleniyor: TR, EN, RU, FA, AR (RTL), ES, PT
+- RTL desteği: Arapça/Farsça için dir=rtl, pixel-panel/button gölge yönü ters
+- Haftalık etkinlik sistemi: 4 tip, haftalık rotasyon, Pazar reset
+- 50+ ItemTemplate (25 yeni eklendi)
+- 10 rozet + 9 unvan, otomatik tetiklenme
+- Telegram WebApp entegrasyon hazırlığı (mock + gerçek auth)
+- KISITLAMA: TR+EN tam çevrilmiş, diğer 5 dil EN bazlı (production'da ana dillere çevrilecek)
+
+GDD TAMAMLANMA DURUMU:
+- Faz 1 (MVP): ✓ Karakter, Inventory, Temel PvP
+- Faz 2: ✓ Crafting, Upgrade, Karaborsa, Prestige, Stat Dağıtım
+- Faz 3: ✓ Seferler, Başarımlar, Görevler, Liderlik, Hava Olayı, Anti-Cheat
+- Faz 4: ✓ Klan, Raid, İntikam, Arkadaşlık, Global Boss, Socket.io
+- Faz 5: ✓ Çoklu Dil (7+RTL), Rozetler/Unvanlar, Haftalık Etkinlikler, 50+ Eşya, Telegram Entegrasyon
+
+TOPLAM:
+- 75+ API endpoint (4 faz)
+- 25+ game lib dosyası
+- 30+ UI component
+- 7 dil (TR/EN/RU/FA/AR/ES/PT) + RTL
+- Socket.io mini-service (port 3003)
+- Pixel-art post-apokaliptik tema
+- Tüm GDD sistemleri implement edildi
+
+PRODUCTION İÇİN:
+- TR/EN harici 5 dilin ana dile çevrilmesi
+- Telegram initData gerçek hash validation
+- Supabase'e migration (PostgreSQL)
+- Vercel deployment
+- Daha kapsamlı UI testleri (production-like environment)

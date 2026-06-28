@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/query-provider";
+import { DirProvider } from "@/components/game/dir-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${pixelFont.variable} antialiased bg-background text-foreground min-h-screen`}
       >
         <QueryProvider>
+          <DirProvider />
           {children}
           <Toaster />
           <Sonner />

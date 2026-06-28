@@ -16,9 +16,11 @@ import {
 import { generateRandomItem } from "@/lib/game/loot";
 import { SLOT_INFO, MAX_DURABILITY } from "@/lib/game/constants";
 import { getDailyWeather } from "@/lib/game/weather";
+import { getWeeklyMultipliers } from "@/lib/game/weekly-event";
 import { checkRateLimit } from "@/lib/game/anticheat";
 import { updateQuestProgress } from "@/lib/game/quests";
 import { checkAndUnlockAchievements } from "@/lib/game/achievements";
+import { checkAndUnlockBadgesTitles } from "@/lib/game/badges";
 
 export async function POST(req: NextRequest) {
   try {
@@ -101,15 +103,16 @@ export async function POST(req: NextRequest) {
 
     // Ödüller
     const weather = await getDailyWeather();
-    const rewardMul = weather.multiplier; // ödül çarpanı
-    const dropMul = weather.dropMul; // drop şansı çarpanı
+    const weekly = await getWeeklyMultipliers();
+    const rewardMul = weather.multiplier * weekly.xpMul; // ödül çarpanı (hava + haftalık XP)
+    const dropMul = weather.dropMul * weekly.dropMul; // drop şansı çarpanı
 
     const xp = result.playerWon
       ? Math.floor((xpReward(player.level, opponent.level)) * rewardMul)
       : Math.floor((xpReward(player.level, opponent.level) * 0.1) * rewardMul); // %10 kaybedince
     const scrap = result.playerWon
-      ? Math.floor((scrapReward(opponent.level)) * rewardMul)
-      : Math.floor((scrapReward(opponent.level) * 0.2) * rewardMul); // %20 kaybedince
+      ? Math.floor((scrapReward(opponent.level)) * weather.multiplier) // hava çarpanı (XP hariç)
+      : Math.floor((scrapReward(opponent.level) * 0.2) * weather.multiplier); // %20 kaybedince
 
     let techPartGain = 0;
     let droppedItemTemplateCode: string | null = null;
@@ -318,6 +321,11 @@ export async function POST(req: NextRequest) {
     const achResult = await checkAndUnlockAchievements(player.id);
     const newAchievements = achResult.unlocked.length > 0 ? achResult.unlocked : undefined;
 
+    // Faz 5: Rozet & unvan kontrolü
+    const badgeResult = await checkAndUnlockBadgesTitles(player.id);
+    const newBadges = badgeResult.newBadges.length > 0 ? badgeResult.newBadges : undefined;
+    const newTitles = badgeResult.newTitles.length > 0 ? badgeResult.newTitles : undefined;
+
     return NextResponse.json({
       ok: true,
       combatId: combatLog.id,
@@ -346,6 +354,8 @@ export async function POST(req: NextRequest) {
         } : null,
       },
       achievements: newAchievements,
+      badges: newBadges,
+      titles: newTitles,
       opponent: {
         id: opponent.id,
         name: opponent.name,

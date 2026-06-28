@@ -123,12 +123,28 @@
   }
   html, body {
     @apply bg-background text-foreground;
-    /* Subtle noise texture (radyasyon hissi) */
     background-image:
       radial-gradient(circle at 20% 30%, oklch(0.18 0.02 145 / 0.04) 0%, transparent 50%),
       radial-gradient(circle at 80% 70%, oklch(0.18 0.02 45 / 0.04) 0%, transparent 50%);
     background-attachment: fixed;
     min-height: 100vh;
+  }
+  /* RTL desteği (Arapça, Farsça) */
+  html[dir="rtl"] body {
+    direction: rtl;
+  }
+  html[dir="rtl"] .pixel-panel {
+    box-shadow:
+      inset 0 0 0 1px oklch(0 0 0 / 0.4),
+      -4px 4px 0 0 oklch(0 0 0 / 0.5); /* RTL'de gölge ters yönde */
+  }
+  html[dir="rtl"] .pixel-button:hover:not(:disabled) {
+    transform: translate(1px, -1px);
+    box-shadow: -4px 4px 0 0 oklch(0 0 0 / 0.6);
+  }
+  html[dir="rtl"] .pixel-button:active:not(:disabled) {
+    transform: translate(-2px, 2px);
+    box-shadow: -1px 1px 0 0 oklch(0 0 0 / 0.5);
   }
   /* Pixel-art doku için konturlu scroll-bar */
   ::-webkit-scrollbar {
