@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
 import { PixelPanel } from "./pixel-panel";
@@ -7,12 +8,53 @@ import { FactionIcon } from "./faction-icon";
 import { StatBar } from "./stat-bar";
 import { CurrencyDisplay } from "./currency-display";
 import { Button } from "@/components/ui/button";
-import { Swords, Backpack, User, Zap, Heart, Crosshair, Shield as ShieldIcon } from "lucide-react";
+import { Swords, Backpack, User, Zap, Heart, Crosshair, Shield as ShieldIcon, MapPin, Hammer, Clock } from "lucide-react";
 import { maxHp, critChance, evasionChance, attackSpeedMultiplier } from "@/lib/game/stats";
+
+interface ActiveExpedition {
+  id: string;
+  zoneType: string;
+  remainingMs: number;
+  finishesAt: string;
+}
+
+interface ActiveCraftJob {
+  id: string;
+  recipeRarity: string;
+  remainingMs: number;
+  finishesAt: string;
+}
 
 export function Dashboard() {
   const { player, setView } = useGameStore();
   const { t, locale } = useI18n();
+  const [activeExp, setActiveExp] = useState<ActiveExpedition | null>(null);
+  const [activeCraft, setActiveCraft] = useState<ActiveCraftJob | null>(null);
+
+  // Aktif sefer + crafting durumunu çek
+  useEffect(() => {
+    if (!player) return;
+    fetch("/api/expedition/active")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.expeditions && d.expeditions.length > 0) {
+          setActiveExp(d.expeditions[0]);
+        } else {
+          setActiveExp(null);
+        }
+      })
+      .catch(() => {});
+    fetch("/api/crafting/jobs")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.jobs && d.jobs.length > 0) {
+          setActiveCraft(d.jobs[0]);
+        } else {
+          setActiveCraft(null);
+        }
+      })
+      .catch(() => {});
+  }, [player?.id]);
 
   if (!player) return null;
 
@@ -120,6 +162,74 @@ export function Dashboard() {
           </Button>
         </div>
       </PixelPanel>
+
+      {/* Aktif durum kartları — sefer + crafting */}
+      {(activeExp || activeCraft) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {activeExp && (
+            <button
+              onClick={() => setView("expedition")}
+              className="pixel-panel p-3 text-left hover:border-accent transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <MapPin className="w-3 h-3 text-accent" />
+                <span className="font-pixel text-[10px] font-bold text-accent uppercase">
+                  {locale === "tr" ? "Aktif Sefer" : "Active Expedition"}
+                </span>
+                {activeExp.remainingMs <= 0 && (
+                  <span className="ml-auto text-[9px] font-pixel text-accent glow-text">
+                    {t("expedition.ready")}
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-muted-foreground font-pixel uppercase">
+                {activeExp.zoneType.replace(/_/g, " ")}
+              </div>
+              {activeExp.remainingMs > 0 ? (
+                <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground font-pixel">
+                  <Clock className="w-2.5 h-2.5" />
+                  {Math.floor(activeExp.remainingMs / 60000)}dk
+                </div>
+              ) : (
+                <div className="text-[10px] text-accent font-pixel mt-1 uppercase">
+                  {t("expedition.collect")}
+                </div>
+              )}
+            </button>
+          )}
+          {activeCraft && (
+            <button
+              onClick={() => setView("crafting")}
+              className="pixel-panel p-3 text-left hover:border-accent transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Hammer className="w-3 h-3 text-rust" />
+                <span className="font-pixel text-[10px] font-bold text-rust uppercase">
+                  {locale === "tr" ? "Üretim" : "Crafting"}
+                </span>
+                {activeCraft.remainingMs <= 0 && (
+                  <span className="ml-auto text-[9px] font-pixel text-accent glow-text">
+                    {t("crafting.ready")}
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-muted-foreground font-pixel uppercase">
+                {activeCraft.recipeRarity}
+              </div>
+              {activeCraft.remainingMs > 0 ? (
+                <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground font-pixel">
+                  <Clock className="w-2.5 h-2.5" />
+                  {Math.floor(activeCraft.remainingMs / 60000)}dk
+                </div>
+              ) : (
+                <div className="text-[10px] text-accent font-pixel mt-1 uppercase">
+                  {t("crafting.collect")}
+                </div>
+              )}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* İstatistikler */}
       <PixelPanel className="p-3 sm:p-4">

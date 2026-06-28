@@ -597,3 +597,36 @@ PRODUCTION HAZIR:
 - Notification overlay (animasyonlu bildirimler)
 - Tüm GDD sistemleri implement edildi
 - 79+ API endpoint, 23 game lib, 32+ UI component
+
+---
+Task ID: 5-polish-2
+Agent: main
+Task: Profile Rozet Entegrasyonu + Dashboard Aktif Durum + Telegram Hash Validation
+
+Work Log:
+- profile-view.tsx: Rozet & unvan entegrasyonu
+  - Karakter kartına aktif unvan rozeti (renkli border + ikon)
+  - Rozet özeti grid (5-8 sütun, ilk 16 rozet, kilitli/açık durum)
+  - /api/player/badges fetch ile veri çekme
+  - TITLES import ile unvan tanımı lookup
+- dashboard.tsx: Aktif durum kartları
+  - Aktif sefer kartı (zone, kalan süre, "Topla" butonu)
+  - Aktif crafting kartı (rarity, kalan süre, "Topla" butonu)
+  - /api/expedition/active + /api/crafting/jobs fetch
+  - Süre dolduğunda "Hazır!" göstergesi
+  - Tıklanabilir kartlar (ilgili view'a yönlendir)
+- telegram.ts: Gerçek HMAC-SHA256 validation
+  - createHmac + timingSafeEqual (crypto module)
+  - secret_key = HMAC-SHA256("WebAppData", BOT_TOKEN)
+  - data_check_string = sorted params (hash hariç)
+  - 24 saat auth_date kontrol
+  - BOT_TOKEN yoksa dev mode (mock kabul)
+  - Production'da TELEGRAM_BOT_TOKEN env set edilince gerçek validation
+
+Stage Summary:
+- Profile artık rozet grid + aktif unvan gösteriyor
+- Dashboard aktif sefer/crafting durum kartları gösteriyor
+- Telegram initData gerçek hash validation hazır (production env)
+- Lint temiz
+- Tüm API'ler 200 (player/badges, expedition/active, crafting/jobs)
+- HTTP 200 doğrulandı

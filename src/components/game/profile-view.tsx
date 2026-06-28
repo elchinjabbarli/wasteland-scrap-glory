@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { FACTIONS } from "@/lib/game/constants";
 import { maxHp, critChance, evasionChance, attackSpeedMultiplier } from "@/lib/game/stats";
 import { STAT_INFO, STAT_KEYS, type StatKey } from "@/lib/game/prestige";
-import { Loader2, Trophy, Skull, Swords, Plus } from "lucide-react";
+import { TITLES } from "@/lib/game/badges";
+import { Loader2, Trophy, Skull, Swords, Plus, Award, Star, Lock } from "lucide-react";
+import * as Icons from "lucide-react";
 
 interface HistoryEntry {
   id: string;
@@ -29,6 +32,7 @@ interface HistoryEntry {
 export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void }) {
   const { player } = useGameStore();
   const { t, locale } = useI18n();
+  const [badgesData, setBadgesData] = useState<{ badges: unknown[]; titles: unknown[]; activeTitle: string | null } | null>(null);
 
   const { data: historyData, isLoading } = useQuery({
     queryKey: ["combat-history"],
@@ -37,6 +41,14 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
       return res.json();
     },
   });
+
+  // Rozet & unvan verisini çek
+  useEffect(() => {
+    fetch("/api/player/badges")
+      .then((r) => r.json())
+      .then((d) => setBadgesData(d))
+      .catch(() => {});
+  }, [player?.id]);
 
   if (!player) return null;
 
@@ -67,6 +79,17 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
             <div className="text-[10px] sm:text-xs text-muted-foreground font-pixel uppercase tracking-wider mt-0.5">
               {faction.name[locale as "tr" | "en"]} · {faction.archetype[locale as "tr" | "en"]}
             </div>
+            {/* Aktif unvan */}
+            {badgesData?.activeTitle && (() => {
+              const titleDef = TITLES.find((t2) => t2.code === badgesData.activeTitle);
+              if (!titleDef) return null;
+              return (
+                <div className="inline-block mt-1 px-2 py-0.5 border text-[9px] font-pixel font-bold uppercase tracking-wider" style={{ borderColor: titleDef.color, color: titleDef.color, backgroundColor: `${titleDef.color}22` }}>
+                  <Star className="w-2.5 h-2.5 inline mr-1" />
+                  {titleDef.name[locale as "tr" | "en"]}
+                </div>
+              );
+            })()}
             <div className="grid grid-cols-2 gap-2 mt-2 text-[10px] sm:text-xs font-pixel">
               <div>
                 <span className="text-muted-foreground uppercase">{t("profile.level")}:</span>{" "}
@@ -226,6 +249,42 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
           </div>
         </div>
       </PixelPanel>
+
+      {/* Rozet özeti */}
+      {badgesData && Array.isArray(badgesData.badges) && badgesData.badges.length > 0 && (
+        <PixelPanel className="p-3 sm:p-4">
+          <h3 className="font-pixel text-xs sm:text-sm font-bold text-accent uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Award className="w-4 h-4" />
+            {t("badges.badges")}
+            <span className="text-[10px] text-muted-foreground ml-auto">
+              {badgesData.badges.filter((b: { isUnlocked: boolean }) => b.isUnlocked).length}/{badgesData.badges.length}
+            </span>
+          </h3>
+          <div className="grid grid-cols-5 sm:grid-cols-8 gap-1.5">
+            {badgesData.badges.slice(0, 16).map((badge: { code: string; icon: string; color: string; isUnlocked: boolean; name: { tr: string; en: string } }) => {
+              const Icon = (Icons[badge.icon as keyof typeof Icons] ?? Icons.Award) as React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+              return (
+                <div
+                  key={badge.code}
+                  className="aspect-square flex items-center justify-center border-2"
+                  style={{
+                    borderColor: badge.isUnlocked ? badge.color : "var(--wasteland-border)",
+                    backgroundColor: badge.isUnlocked ? `${badge.color}22` : "transparent",
+                    opacity: badge.isUnlocked ? 1 : 0.3,
+                  }}
+                  title={badge.name[locale as "tr" | "en"]}
+                >
+                  {badge.isUnlocked ? (
+                    <Icon className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: badge.color }} />
+                  ) : (
+                    <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </PixelPanel>
+      )}
     </div>
   );
 }

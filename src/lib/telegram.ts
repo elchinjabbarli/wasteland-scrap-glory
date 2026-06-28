@@ -1,8 +1,9 @@
 // Wasteland: Scrap & Glory - Telegram WebApp Entegrasyon Hazırlığı
-// Production'da gerçek Telegram initData validation yapılacak
+// Production'da gerçek Telegram initData validation yapılır
 // Dev ortamında mock fallback
 
 import { db } from "@/lib/db";
+import { createHmac, timingSafeEqual } from "crypto";
 
 // ============================================================
 // TELEGRAM USER (mock veya gerçek)
@@ -25,46 +26,72 @@ export interface TelegramInitData {
 }
 
 // ============================================================
-// initData VALIDATION (production)
+// initData VALIDATION (production — gerçek HMAC-SHA256)
 // ============================================================
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 /**
- * Telegram initData validation — production'da gerçek hash kontrolü yapar
- * Dev ortamında (BOT_TOKEN yoksa) mock kabul eder
+ * Telegram initData validation
+ * Production: gerçek HMAC-SHA256 hash kontrolü (BOT_TOKEN varsa)
+ * Dev: mock kabul eder (BOT_TOKEN yoksa)
+ *
+ * Telegram algoritması:
+ * 1. secret_key = HMAC-SHA256("WebAppData", BOT_TOKEN)
+ * 2. data_check_string = sorted params (hash hariç) "key=value\n" formatında
+ * 3. hash = HMAC-SHA256(data_check_string, secret_key)
+ * 4. timingSafeEqual ile karşılaştır
  */
 export function validateInitData(initDataRaw: string): TelegramInitData | null {
-  if (!BOT_TOKEN) {
-    // Dev mode — mock validation
-    try {
-      const params = new URLSearchParams(initDataRaw);
-      const userStr = params.get("user");
-      if (!userStr) return null;
-      const user = JSON.parse(userStr) as TelegramUser;
-      return {
-        user,
-        auth_date: parseInt(params.get("auth_date") ?? "0", 10),
-        hash: params.get("hash") ?? "mock_hash",
-        start_param: params.get("start_param") ?? undefined,
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  // Production — gerçek validation
-  // TODO: Telegram HMAC-SHA256 validation uygula
-  // Şimdilik mock (production'da doldurulacak)
   try {
     const params = new URLSearchParams(initDataRaw);
     const userStr = params.get("user");
-    if (!userStr) return null;
+    const hash = params.get("hash");
+    if (!userStr || !hash) return null;
+
     const user = JSON.parse(userStr) as TelegramUser;
+
+    // Dev mode — BOT_TOKEN yoksa mock kabul
+    if (!BOT_TOKEN) {
+      return {
+        user,
+        auth_date: parseInt(params.get("auth_date") ?? "0", 10),
+        hash,
+        start_param: params.get("start_param") ?? undefined,
+      };
+    }
+
+    // Production — gerçek HMAC-SHA256 validation
+    // 1. secret_key = HMAC-SHA256("WebAppData", BOT_TOKEN)
+    const secretKey = createHmac("sha256", "WebAppData").update(BOT_TOKEN).digest();
+
+    // 2. data_check_string — sorted params (hash hariç) "key=value\n"
+    const dataCheckArr: string[] = [];
+    for (const [key, value] of params.entries()) {
+      if (key === "hash") continue;
+      dataCheckArr.push(`${key}=${value}`);
+    }
+    dataCheckArr.sort();
+    const dataCheckString = dataCheckArr.join("\n");
+
+    // 3. computed hash
+    const computedHash = createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+
+    // 4. timing-safe compare
+    const hashBuf = Buffer.from(hash, "hex");
+    const computedBuf = Buffer.from(computedHash, "hex");
+    if (hashBuf.length !== computedBuf.length) return null;
+    if (!timingSafeEqual(hashBuf, computedBuf)) return null;
+
+    // Auth_date kontrol (24 saat geçerli)
+    const authDate = parseInt(params.get("auth_date") ?? "0", 10);
+    const now = Math.floor(Date.now() / 1000);
+    if (now - authDate > 86400) return null; // 24 saat
+
     return {
       user,
-      auth_date: parseInt(params.get("auth_date") ?? "0", 10),
-      hash: params.get("hash") ?? "",
+      auth_date: authDate,
+      hash,
       start_param: params.get("start_param") ?? undefined,
     };
   } catch {
