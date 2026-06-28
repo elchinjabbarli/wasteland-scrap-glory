@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { CRAFTING_RECIPES, type CraftingRecipe } from "./stats";
 import { type Rarity, type Slot } from "./constants";
 import { generateItem, ITEM_SEEDS, type GeneratedItem } from "./loot";
+import { getDailyWeather } from "./weather";
 
 // ============================================================
 // CRAFTING TARİF BİLGİSİ
@@ -101,9 +102,12 @@ export async function startCrafting(
     },
   });
 
-  // İş oluştur
+  // İş oluştur — hava olayı süre çarpanı uygula
+  const weather = await getDailyWeather();
+  const durationMul = weather.craftingTimeMul;
   const now = new Date();
-  const finishesAt = new Date(now.getTime() + recipe.durationMinutes * 60 * 1000);
+  const durationMinutes = Math.ceil(recipe.durationMinutes * durationMul);
+  const finishesAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
 
   const job = await db.craftingJob.create({
     data: {
@@ -112,7 +116,7 @@ export async function startCrafting(
       slot,
       startedAt: now,
       finishesAt,
-      durationMinutes: recipe.durationMinutes,
+      durationMinutes,
       scrapCost: recipe.scrapCost,
       electronicCost: recipe.electronicCost,
       techPartCost: recipe.techPartCost,
@@ -235,6 +239,8 @@ export async function completeCrafting(playerId: string, jobId: string): Promise
         completedAt: now,
       },
     });
+
+    // Faz 3: Başarımlar items_crafted sayar (checkAndUnlockAchievements çağrıldığında)
 
     return {
       ok: true,

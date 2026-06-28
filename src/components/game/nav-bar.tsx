@@ -2,7 +2,7 @@
 
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
-import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star } from "lucide-react";
+import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavBarProps {
@@ -16,10 +16,14 @@ export function NavBar({ className }: NavBarProps) {
   const items: { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number }[] = [
     { key: "dashboard", icon: Home, label: t("nav.home") },
     { key: "battle", icon: Swords, label: t("nav.battle") },
+    { key: "expedition", icon: MapPin, label: t("nav.expedition") },
     { key: "inventory", icon: Backpack, label: t("nav.inventory") },
     { key: "crafting", icon: Hammer, label: t("nav.crafting") },
     { key: "upgrade", icon: Sparkles, label: t("nav.upgrade") },
     { key: "market", icon: Store, label: t("nav.market") },
+    { key: "quests", icon: Gift, label: t("nav.quests") },
+    { key: "achievements", icon: Trophy, label: t("nav.achievements") },
+    { key: "leaderboard", icon: Crown, label: t("nav.leaderboard") },
     { key: "prestige", icon: Star, label: t("nav.prestige") },
     { key: "profile", icon: User, label: t("nav.profile"), badge: player?.statPoints ?? 0 },
   ];
@@ -28,7 +32,7 @@ export function NavBar({ className }: NavBarProps) {
     <nav
       className={cn(
         "sticky bottom-0 left-0 right-0 z-50 bg-wasteland-panel/95 backdrop-blur-sm border-t-2 border-wasteland-border",
-        "px-1 py-1.5 flex justify-around items-stretch gap-0.5 overflow-x-auto scrollbar-thin",
+        "px-1 py-1.5 flex justify-start items-stretch gap-0.5 overflow-x-auto scrollbar-thin",
         "shadow-[0_-4px_0_0_oklch(0_0_0/0.5)]",
         className
       )}
@@ -41,7 +45,7 @@ export function NavBar({ className }: NavBarProps) {
             key={it.key}
             onClick={() => setView(it.key)}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-1.5 px-2 transition-all border-2 flex-shrink-0 min-w-[60px]",
+              "flex flex-col items-center gap-0.5 py-1.5 px-2 transition-all border-2 flex-shrink-0 min-w-[58px]",
               "pixel-button",
               active
                 ? "bg-primary text-primary-foreground border-primary"

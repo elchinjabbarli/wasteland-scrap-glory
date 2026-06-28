@@ -14,8 +14,13 @@ import { UpgradeView } from "@/components/game/upgrade-view";
 import { MarketView } from "@/components/game/market-view";
 import { PrestigeView } from "@/components/game/prestige-view";
 import { StatAllocationView } from "@/components/game/stat-allocation-view";
+import { ExpeditionView } from "@/components/game/expedition-view";
+import { AchievementsView } from "@/components/game/achievements-view";
+import { QuestsView } from "@/components/game/quests-view";
+import { LeaderboardView } from "@/components/game/leaderboard-view";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
+import { WeatherBanner } from "@/components/game/weather-banner";
 import { Button } from "@/components/ui/button";
 import { Languages } from "lucide-react";
 
@@ -156,8 +161,15 @@ export default function HomePage() {
         {view === "upgrade" && <UpgradeView />}
         {view === "market" && <MarketView />}
         {view === "prestige" && <PrestigeView />}
+        {view === "expedition" && <ExpeditionView />}
+        {view === "achievements" && <AchievementsView />}
+        {view === "quests" && <QuestsView />}
+        {view === "leaderboard" && <LeaderboardView />}
         {view === "profile" && <ProfileView onAllocateClick={() => setShowStats(true)} />}
       </main>
+
+      {/* Hava olayı banner — sadece dashboard'da */}
+      {view === "dashboard" && <WeatherBanner />}
 
       {/* Rewards bar — sadece dashboard'da */}
       {view === "dashboard" && <RewardsBar />}

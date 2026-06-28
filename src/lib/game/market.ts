@@ -3,6 +3,7 @@
 
 import { db } from "@/lib/db";
 import { MAX_DURABILITY } from "./constants";
+import { updateQuestProgress } from "./quests";
 
 // ============================================================
 // İLAN VERME
@@ -186,6 +187,10 @@ export async function buyListing(buyerId: string, listingId: string): Promise<Bu
       },
     }),
   ]);
+
+  // Faz 3: Quest progress (alıcı + satıcı için MARKET_TRANSACTION)
+  await updateQuestProgress(buyerId, "MARKET_TRANSACTION", 1);
+  await updateQuestProgress(listing.sellerId, "MARKET_TRANSACTION", 1);
 
   return {
     ok: true,

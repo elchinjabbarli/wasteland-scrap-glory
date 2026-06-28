@@ -15,6 +15,10 @@ import {
 } from "@/lib/game/stats";
 import { generateRandomItem } from "@/lib/game/loot";
 import { SLOT_INFO, MAX_DURABILITY } from "@/lib/game/constants";
+import { getDailyWeather } from "@/lib/game/weather";
+import { checkRateLimit } from "@/lib/game/anticheat";
+import { updateQuestProgress } from "@/lib/game/quests";
+import { checkAndUnlockAchievements } from "@/lib/game/achievements";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,6 +37,12 @@ export async function POST(req: NextRequest) {
         { error: "Çok hızlı! Biraz bekleyin", code: "RATE_LIMITED" },
         { status: 429 }
       );
+    }
+
+    // Anti-cheat: saatlik limit
+    const rl = await checkRateLimit(player.id, "PVP");
+    if (!rl.allowed) {
+      return NextResponse.json({ error: rl.reason, code: "ANTI_CHEAT" }, { status: 429 });
     }
 
     // Yaralı mı?
@@ -90,12 +100,16 @@ export async function POST(req: NextRequest) {
     const result = simulateCombat(playerStats, opponent);
 
     // Ödüller
+    const weather = await getDailyWeather();
+    const rewardMul = weather.multiplier; // ödül çarpanı
+    const dropMul = weather.dropMul; // drop şansı çarpanı
+
     const xp = result.playerWon
-      ? xpReward(player.level, opponent.level)
-      : Math.floor(xpReward(player.level, opponent.level) * 0.1); // %10 kaybedince
+      ? Math.floor((xpReward(player.level, opponent.level)) * rewardMul)
+      : Math.floor((xpReward(player.level, opponent.level) * 0.1) * rewardMul); // %10 kaybedince
     const scrap = result.playerWon
-      ? scrapReward(opponent.level)
-      : Math.floor(scrapReward(opponent.level) * 0.2); // %20 kaybedince
+      ? Math.floor((scrapReward(opponent.level)) * rewardMul)
+      : Math.floor((scrapReward(opponent.level) * 0.2) * rewardMul); // %20 kaybedince
 
     let techPartGain = 0;
     let droppedItemTemplateCode: string | null = null;
@@ -103,13 +117,13 @@ export async function POST(req: NextRequest) {
     let droppedItemId: string | null = null;
 
     if (result.playerWon) {
-      // Tech-Part drop şansı
-      if (chanceCheck(techPartDropChance(opponent.level))) {
+      // Tech-Part drop şansı (hava çarpanı ile)
+      if (chanceCheck(techPartDropChance(opponent.level) * dropMul)) {
         techPartGain = 1;
       }
 
-      // Eşya drop şansı (yeni eşya üretilip inventory'ye eklenir)
-      if (chanceCheck(0.30)) {
+      // Eşya drop şansı (yeni eşya üretilip inventory'ye eklenir) — hava ile boost
+      if (chanceCheck(0.30 * dropMul)) {
         const generated = generateRandomItem();
         // ItemTemplate bul veya oluştur
         let template = await db.itemTemplate.findUnique({ where: { code: generated.templateCode } });
@@ -295,6 +309,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Faz 3: Quest progress (sadece kazanırsa PVP_WINS)
+    if (result.playerWon) {
+      await updateQuestProgress(player.id, "PVP_WINS", 1);
+    }
+
+    // Faz 3: Başarım kontrolü
+    const achResult = await checkAndUnlockAchievements(player.id);
+    const newAchievements = achResult.unlocked.length > 0 ? achResult.unlocked : undefined;
+
     return NextResponse.json({
       ok: true,
       combatId: combatLog.id,
@@ -316,7 +339,13 @@ export async function POST(req: NextRequest) {
         newLevel,
         droppedItem: droppedItemName ? { name: droppedItemName, templateCode: droppedItemTemplateCode } : null,
         lostItem: droppedItemName && !result.playerWon ? { name: droppedItemName } : null,
+        weather: weather.type !== "CLEAR" ? {
+          type: weather.type,
+          name: weather.name,
+          bonusApplied: `${Math.round((rewardMul - 1) * 100)}% ödül`,
+        } : null,
       },
+      achievements: newAchievements,
       opponent: {
         id: opponent.id,
         name: opponent.name,

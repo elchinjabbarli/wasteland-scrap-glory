@@ -1,6 +1,7 @@
 // Wasteland: Scrap & Glory - Prisma Schema
 // Faz 1: Karakter, Inventory, Temel PvP
 // Faz 2: Crafting, Upgrade, Karaborsa, Prestige
+// Faz 3: Seferler, Başarımlar, Görevler, Liderlik, Hava Olayı
 
 generator client {
   provider = "prisma-client-js"
@@ -52,6 +53,13 @@ model Player {
   adWatchCount       Int      @default(0) @map("ad_watch_count")
   adWatchResetAt     DateTime? @map("ad_watch_reset_at")
 
+  // Faz 3: Başarımlar + Anti-cheat
+  achievementPoints  Int      @default(0) @map("achievement_points")
+  flagCount          Int      @default(0) @map("flag_count")
+  bannedUntil        DateTime? @map("banned_until")
+  lastFlagAt         DateTime? @map("last_flag_at")
+  questsClaimedAt    DateTime? @map("quests_claimed_at") // son günlük görev ödülü
+
   // İstatistikler
   battlesTotal  Int      @default(0) @map("battles_total")
   battlesWon    Int      @default(0) @map("battles_won")
@@ -70,6 +78,9 @@ model Player {
   tradeOffersSent   TradeOffer[] @relation("trade_offers_sent")
   tradeOffersReceived TradeOffer[] @relation("trade_offers_received")
   prestigeLogs  PrestigeLog[]
+  expeditions   Expedition[]
+  achievements  PlayerAchievement[]
+  dailyQuests   DailyQuest[]
 
   @@map("players")
 }
@@ -372,4 +383,115 @@ model PrestigeLog {
 
   @@index([playerId])
   @@map("prestige_logs")
+}
+
+// ============================================================
+// FAZ 3: EXPEDITION - Sefer (gerçek zamanlı süre)
+// ============================================================
+model Expedition {
+  id            String   @id @default(cuid())
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  zoneType      String   @map("zone_type") // RADIATION_VALLEY | ABANDONED_CITY | MOUNTAIN_BUNKER | NUCLEAR_PLANT
+  zoneLevel     Int      @map("zone_level") // bölgenin min level'i
+  riskPercent   Int      @map("risk_percent") // %10, %20, %30, %50
+
+  startedAt     DateTime @map("started_at")
+  finishesAt    DateTime @map("finishes_at")
+  durationMinutes Int    @map("duration_minutes")
+
+  status        String   @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | FAILED | CANCELLED
+  success       Boolean? // null = henüz tamamlanmadı
+  resolvedAt    DateTime? @map("resolved_at")
+
+  // Sonuçlar (complete olunca doldurulur)
+  scrapReward   Int      @default(0) @map("scrap_reward")
+  techPartReward Int     @default(0) @map("tech_part_reward")
+  itemDroppedId String?  @map("item_dropped_id")
+  injuredUntil  DateTime? @map("injured_until") // başarısızsa 24 saat yaralı
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([playerId])
+  @@index([status])
+  @@map("expeditions")
+}
+
+// ============================================================
+// FAZ 3: ACHIEVEMENT - Başarım şablonu (code ile unique)
+// ============================================================
+model Achievement {
+  code          String   @id // "first_blood", "serial_killer", ...
+  name          String
+  description   String
+  category      String   // BATTLE | EXPLORATION | ECONOMY | SOCIAL
+  points        Int      @default(10) // 10, 25, 50, 100
+  rarity        String   @default("COMMON") // COMMON | RARE | EPIC | LEGENDARY
+  condition     String   // JSON: { type: "kills", target: 10 }
+  icon          String   @default("Trophy")
+
+  players       PlayerAchievement[]
+
+  @@map("achievements")
+}
+
+// ============================================================
+// FAZ 3: PLAYER ACHIEVEMENT - Oyuncunun kazandığı başarımlar
+// ============================================================
+model PlayerAchievement {
+  playerId        String   @map("player_id")
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  achievementCode String   @map("achievement_code")
+  achievement     Achievement @relation(fields: [achievementCode], references: [code], onDelete: Cascade)
+  unlockedAt      DateTime @default(now()) @map("unlocked_at")
+
+  @@id([playerId, achievementCode])
+  @@index([playerId])
+  @@map("player_achievements")
+}
+
+// ============================================================
+// FAZ 3: DAILY QUEST - Günlük görev (gece yarısı yenilenir)
+// ============================================================
+model DailyQuest {
+  id            String   @id @default(cuid())
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  type          String   // PVP_WINS | EXPEDITION_COMPLETE | MARKET_TRANSACTION
+  target        Int      @default(1) // hedef sayı
+  progress      Int      @default(0)
+  completed     Boolean  @default(false)
+  claimedAt     DateTime? @map("claimed_at")
+
+  // Ödül
+  rewardScrap   Int      @default(0) @map("reward_scrap")
+  rewardXp      Int      @default(0) @map("reward_xp")
+
+  expiresAt     DateTime @map("expires_at") // gece yarısı
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([playerId])
+  @@index([expiresAt])
+  @@map("daily_quests")
+}
+
+// ============================================================
+// FAZ 3: WEATHER EVENT - Günlük hava olayı (tek kayıt)
+// ============================================================
+model WeatherEvent {
+  id            String   @id @default(cuid())
+  type          String   // ACID_RAIN | RADIATION_STORM | GOLDEN_HOUR
+  day           String   @unique // "2026-06-29" formatında, günlük tek
+  multiplier    Float    @default(1.0) // ödül çarpanı
+  combatMul     Float    @default(1.0) @map("combat_mul") // hasar çarpanı
+  dropMul       Float    @default(1.0) @map("drop_mul") // drop şansı çarpanı
+  durabilityLossMul Float @default(1.0) @map("durability_loss_mul")
+  craftingTimeMul Float  @default(1.0) @map("crafting_time_mul")
+
+  description   String   @default("")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("weather_events")
 }
