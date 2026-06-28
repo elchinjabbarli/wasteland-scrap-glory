@@ -24,6 +24,7 @@ import { SocialView } from "@/components/game/social-view";
 import { GlobalBossView } from "@/components/game/global-boss-view";
 import { BadgesView } from "@/components/game/badges-view";
 import { WeeklyEventBanner } from "@/components/game/weekly-event-banner";
+import { Tutorial } from "@/components/game/tutorial";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
 import { WeatherBanner } from "@/components/game/weather-banner";
@@ -187,6 +188,9 @@ export default function HomePage() {
 
       {/* Rewards bar — sadece dashboard'da */}
       {view === "dashboard" && <RewardsBar />}
+
+      {/* Tutorial — sadece dashboard'da */}
+      {view === "dashboard" && <Tutorial />}
 
       <NavBar />
     </div>

@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FACTIONS, ELEMENTS } from "@/lib/game/constants";
 import { maxHp } from "@/lib/game/stats";
+import { pushNotification } from "./notification-overlay";
 
 type Phase = "loadout" | "match" | "sim" | "result";
 
@@ -262,6 +263,44 @@ function SimPhase() {
           });
           qc.invalidateQueries({ queryKey: ["inventory"] });
           setBattlePhase("result");
+
+          // Faz 5: Notification overlay — level up, achievements, badges
+          if (data.rewards?.leveledUp) {
+            pushNotification({
+              type: "levelup",
+              title: `⭐ Seviye ${data.rewards.newLevel}!`,
+              description: data.rewards.statPointsGained > 0 ? `+${data.rewards.statPointsGained} Stat Point` : undefined,
+            });
+          }
+          if (data.achievements) {
+            for (const ach of data.achievements) {
+              pushNotification({
+                type: "achievement",
+                title: `🏆 ${ach.name}`,
+                description: `+${ach.points} puan`,
+              });
+            }
+          }
+          if (data.badges) {
+            for (const badge of data.badges) {
+              pushNotification({
+                type: "badge",
+                title: `🎖️ ${badge.name.tr}`,
+                description: "Yeni rozet!",
+                color: badge.color,
+              });
+            }
+          }
+          if (data.titles) {
+            for (const title of data.titles) {
+              pushNotification({
+                type: "title",
+                title: `👑 ${title.name.tr}`,
+                description: "Yeni unvan açıldı!",
+                color: title.color,
+              });
+            }
+          }
           return;
         }
         const r = data.result.rounds[i];
