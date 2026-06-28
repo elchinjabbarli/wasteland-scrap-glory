@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Wasteland: Scrap & Glory - Prisma Schema
+// Faz 1: Karakter, Inventory, Temel PvP
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +10,226 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ============================================================
+// PLAYER - Oyuncu karakteri (ana kayıt)
+// ============================================================
+model Player {
+  id            String   @id @default(cuid())
+  telegramId    String   @unique @map("telegram_id")
+  telegramName  String   @map("telegram_name")
+  name          String   @unique
+  faction       String   // BOZKIR | COL | FAVELA
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  prestige      Int      @default(0)
+
+  // Birincil istatistikler
+  str           Int      @default(5)
+  agi           Int      @default(5)
+  end           Int      @default(5)
+  int           Int      @default(5)
+  // İkincil istatistikler
+  lck           Int      @default(5)
+  chr           Int      @default(5)
+  statPoints    Int      @default(0) @map("stat_points")
+
+  // Currency
+  scrap         Int      @default(100)
+  techPart      Int      @default(0) @map("tech_part")
+  crystal       Int      @default(0)
+
+  // Malzemeler
+  electronic    Int      @default(0)
+  crystalDust   Int      @default(0) @map("crystal_dust")
+
+  // Durum
+  state         String   @default("IDLE") // IDLE | IN_COMBAT | INJURED | ...
+  injuredUntil  DateTime? @map("injured_until")
+
+  // İstatistikler
+  battlesTotal  Int      @default(0) @map("battles_total")
+  battlesWon    Int      @default(0) @map("battles_won")
+  battlesLost   Int      @default(0) @map("battles_lost")
+  kills         Int      @default(0)
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  items         Item[]
+  loadout       Loadout?
+  combatsAsA    CombatLog[]
+  sessions      Session[]
+
+  @@map("players")
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ============================================================
+// ITEM TEMPLATE - Sabit eşya şablonları (seed data)
+// ============================================================
+model ItemTemplate {
+  id              String   @id @default(cuid())
+  code            String   @unique // "rusty_blade", "leather_vest", ...
+  name            String
+  slot            String   // WEAPON | ARMOR | SIDE_TOOL | COMPANION
+  element         String   @default("PHYSICAL") // PHYSICAL | FIRE | ICE | POISON
+  tier            String   @default("COMMON") // COMMON | RARE | EPIC | LEGENDARY
+  description     String   @default("")
+
+  // Temel istatistikler (rastgele range için min/max)
+  baseDamageMin   Int      @default(0) @map("base_damage_min")
+  baseDamageMax   Int      @default(0) @map("base_damage_max")
+  baseArmorMin    Int      @default(0) @map("base_armor_min")
+  baseArmorMax    Int      @default(0) @map("base_armor_max")
+  baseHpBonusMin  Int      @default(0) @map("base_hp_bonus_min")
+  baseHpBonusMax  Int      @default(0) @map("base_hp_bonus_max")
+  attackSpeed     Float    @default(1.0) @map("attack_speed") // saniyede saldırı
+
+  // Companion'a özel
+  companionHp     Int      @default(0) @map("companion_hp")
+  companionDamage Int      @default(0) @map("companion_damage")
+
+  // Special effect (status effect tetikleyici)
+  effectType      String?  @map("effect_type") // POISON | BURN | FREEZE | STUN | HASTE | EMPOWER | SHIELD | REGEN
+  effectChance    Float    @default(0) @map("effect_chance")
+  effectDuration  Int      @default(0) @map("effect_duration")
+
+  icon            String   @default("sword") // lucide ikon adı
+  faction         String?  // null = tüm fraksiyonlar, yoksa faction-specific
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  items           Item[]
+
+  @@map("item_templates")
+}
+
+// ============================================================
+// ITEM - Oyuncuya ait konkret eşya (instance)
+// ============================================================
+model Item {
+  id            String   @id @default(cuid())
+  templateId    String   @map("template_id")
+  template      ItemTemplate @relation(fields: [templateId], references: [id])
+
+  ownerId       String   @map("owner_id")
+  owner         Player   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Prosedürel üretilen değerler
+  name          String   // ön-ek + temel + son-ek
+  prefix        String?  // "Paslı", "Lanetli", ...
+  suffix        String?  // "+1", "of Fire", ...
+  rarity        String   // COMMON | RARE | EPIC | LEGENDARY (template tier override edebilir)
+  element       String   // PHYSICAL | FIRE | ICE | POISON
+
+  // Roll edilmiş değerler
+  baseDamage    Int      @default(0) @map("base_damage")
+  baseArmor     Int      @default(0) @map("base_armor")
+  baseHpBonus   Int      @default(0) @map("base_hp_bonus")
+  attackSpeed   Float    @default(1.0) @map("attack_speed")
+  companionHp   Int      @default(0) @map("companion_hp")
+  companionDamage Int    @default(0) @map("companion_damage")
+
+  // Effect
+  effectType    String?  @map("effect_type")
+  effectChance  Float    @default(0) @map("effect_chance")
+  effectDuration Int     @default(0) @map("effect_duration")
+
+  // Meta
+  upgradeLevel  Int      @default(0) @map("upgrade_level") // 0-10
+  durability    Int      @default(100) // 0-100, 0 = Kırık
+  state         String   @default("IN_INVENTORY") // IN_INVENTORY | EQUIPPED | LISTED | LOCKED | BROKEN
+  protected     Boolean  @default(false) // Permadeath riskinden korumalı mı
+
+  icon          String   @default("sword")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  loadoutWeapon     Loadout? @relation("LoadoutWeapon")
+  loadoutArmor      Loadout? @relation("LoadoutArmor")
+  loadoutSideTool   Loadout? @relation("LoadoutSideTool")
+  loadoutCompanion  Loadout? @relation("LoadoutCompanion")
+
+  @@index([ownerId])
+  @@index([templateId])
+  @@map("items")
+}
+
+// ============================================================
+// LOADOUT - Oyuncunun kuşandığı 4 slot
+// ============================================================
+model Loadout {
+  id              String   @id @default(cuid())
+  playerId        String   @unique @map("player_id")
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  weaponItemId    String?  @unique @map("weapon_item_id")
+  weaponItem      Item?    @relation("LoadoutWeapon", fields: [weaponItemId], references: [id], onDelete: SetNull)
+
+  armorItemId     String?  @unique @map("armor_item_id")
+  armorItem       Item?    @relation("LoadoutArmor", fields: [armorItemId], references: [id], onDelete: SetNull)
+
+  sideToolItemId  String?  @unique @map("side_tool_item_id")
+  sideToolItem    Item?    @relation("LoadoutSideTool", fields: [sideToolItemId], references: [id], onDelete: SetNull)
+
+  companionItemId String?  @unique @map("companion_item_id")
+  companionItem   Item?    @relation("LoadoutCompanion", fields: [companionItemId], references: [id], onDelete: SetNull)
+
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("loadouts")
+}
+
+// ============================================================
+// COMBAT LOG - Savaş kaydı (round-by-round JSON)
+// ============================================================
+model CombatLog {
+  id            String   @id @default(cuid())
+  playerAId     String   @map("player_a_id")
+  playerA       Player   @relation(fields: [playerAId], references: [id], onDelete: Cascade)
+
+  // Rakip: mock PvE ise gerçek Player kaydı yok, sadece ID string saklanır
+  playerBId     String?  @map("player_b_id") // gerçek Player ID (PvP) veya null (PvE mock)
+  playerBName   String   @default("Unknown") @map("player_b_name")
+  playerBFaction String  @default("BOZKIR") @map("player_b_faction")
+  playerBLevel  Int      @default(1) @map("player_b_level")
+
+  isPvP         Boolean  @default(true) @map("is_pvp")
+  winnerSide    String   @default("A") // "A" (oyuncu kazandı) | "B" (rakip kazandı)
+
+  // Round-by-round log (JSON string)
+  roundsJson    String   @map("rounds_json") // JSON array
+
+  // Ödüller (sadece playerA için, Faz 1'de)
+  xpGained      Int      @default(0) @map("xp_gained")
+  scrapGained   Int      @default(0) @map("scrap_gained")
+  techPartGained Int     @default(0) @map("tech_part_gained")
+  itemDroppedId String?  @map("item_dropped_id") // kazanılan eşya
+  itemLostId    String?  @map("item_lost_id") // kaybedilen eşya (permadeath)
+
+  durationMs    Int      @default(0) @map("duration_ms")
+  totalRounds   Int      @default(0) @map("total_rounds")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([playerAId])
+  @@map("combat_logs")
+}
+
+// ============================================================
+// SESSION - Mock Telegram auth session
+// ============================================================
+model Session {
+  id            String   @id @default(cuid())
+  token         String   @unique
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  telegramId    String   @map("telegram_id")
+  telegramName  String   @map("telegram_name")
+  expiresAt     DateTime @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([token])
+  @@index([playerId])
+  @@map("sessions")
 }

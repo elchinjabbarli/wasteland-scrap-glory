@@ -8,6 +8,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-pixel: var(--font-pixel);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -37,6 +38,20 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Game-specific */
+  --color-wasteland-bg: var(--wasteland-bg);
+  --color-wasteland-panel: var(--wasteland-panel);
+  --color-wasteland-border: var(--wasteland-border);
+  --color-rust: var(--rust);
+  --color-radiation: var(--radiation);
+  --color-blood: var(--blood);
+  --color-scrap: var(--scrap);
+  --color-tech: var(--tech);
+  --color-crystal: var(--crystal);
+  --color-rarity-common: var(--rarity-common);
+  --color-rarity-rare: var(--rarity-rare);
+  --color-rarity-epic: var(--rarity-epic);
+  --color-rarity-legendary: var(--rarity-legendary);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -44,79 +59,221 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.25rem; /* daha keskin köşeler — pixel feel */
+
+  /* Post-apokaliptik koyu tema (her zaman dark) */
+  --background: oklch(0.16 0.005 60); /* çok koyu gri-yeşilimsi */
+  --foreground: oklch(0.92 0.01 60);
+  --card: oklch(0.20 0.008 60);
+  --card-foreground: oklch(0.92 0.01 60);
+  --popover: oklch(0.18 0.008 60);
+  --popover-foreground: oklch(0.92 0.01 60);
+  --primary: oklch(0.62 0.18 45); /* paslı turuncu */
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.27 0.02 60);
+  --secondary-foreground: oklch(0.92 0.01 60);
+  --muted: oklch(0.25 0.01 60);
+  --muted-foreground: oklch(0.65 0.02 60);
+  --accent: oklch(0.68 0.18 145); /* radyasyon yeşili */
+  --accent-foreground: oklch(0.16 0.005 60);
+  --destructive: oklch(0.55 0.22 25); /* kan kırmızısı */
+  --border: oklch(0.30 0.01 60);
+  --input: oklch(0.25 0.01 60);
+  --ring: oklch(0.50 0.15 45);
+  --chart-1: oklch(0.62 0.18 45);
+  --chart-2: oklch(0.68 0.18 145);
+  --chart-3: oklch(0.55 0.22 25);
+  --chart-4: oklch(0.70 0.15 250);
+  --chart-5: oklch(0.72 0.18 295);
+
+  /* Game paleti */
+  --wasteland-bg: oklch(0.16 0.005 60);
+  --wasteland-panel: oklch(0.20 0.008 60);
+  --wasteland-border: oklch(0.32 0.015 60);
+  --rust: oklch(0.55 0.18 45);
+  --radiation: oklch(0.72 0.22 145);
+  --blood: oklch(0.50 0.22 25);
+  --scrap: oklch(0.65 0.08 60);
+  --tech: oklch(0.70 0.15 250);
+  --crystal: oklch(0.75 0.20 295);
+  --rarity-common: oklch(0.62 0.005 60);
+  --rarity-rare: oklch(0.62 0.18 250);
+  --rarity-epic: oklch(0.62 0.22 295);
+  --rarity-legendary: oklch(0.72 0.18 60);
+
+  --sidebar: oklch(0.20 0.008 60);
+  --sidebar-foreground: oklch(0.92 0.01 60);
+  --sidebar-primary: oklch(0.62 0.18 45);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.27 0.02 60);
+  --sidebar-accent-foreground: oklch(0.92 0.01 60);
+  --sidebar-border: oklch(0.30 0.01 60);
+  --sidebar-ring: oklch(0.50 0.15 45);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Tema zaten dark, aynı değerler */
+  --background: oklch(0.16 0.005 60);
+  --foreground: oklch(0.92 0.01 60);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    /* Subtle noise texture (radyasyon hissi) */
+    background-image:
+      radial-gradient(circle at 20% 30%, oklch(0.18 0.02 145 / 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, oklch(0.18 0.02 45 / 0.04) 0%, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
+  /* Pixel-art doku için konturlu scroll-bar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--wasteland-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--rust);
+    border: 2px solid var(--wasteland-bg);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+}
+
+/* ============================================================
+   PIXEL-ART THEME HELPERS
+   ============================================================ */
+
+/* Pixel panel — sert kenarlar + ince border */
+.pixel-panel {
+  background-color: var(--wasteland-panel);
+  border: 2px solid var(--wasteland-border);
+  border-radius: 0;
+  box-shadow:
+    inset 0 0 0 1px oklch(0 0 0 / 0.4),
+    4px 4px 0 0 oklch(0 0 0 / 0.5);
+  position: relative;
+}
+.pixel-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      oklch(1 0 0 / 0.015) 2px,
+      oklch(1 0 0 / 0.015) 3px
+    );
+}
+
+/* Pixel buton — retro basınç efekti */
+.pixel-button {
+  border: 2px solid var(--wasteland-border);
+  box-shadow: 3px 3px 0 0 oklch(0 0 0 / 0.5);
+  transition: transform 50ms ease, box-shadow 50ms ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+.pixel-button:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 oklch(0 0 0 / 0.6);
+}
+.pixel-button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 oklch(0 0 0 / 0.5);
+}
+.pixel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Rarity glow */
+.rarity-glow-common { box-shadow: 0 0 8px oklch(0.62 0.005 60 / 0.3); }
+.rarity-glow-rare { box-shadow: 0 0 12px oklch(0.62 0.18 250 / 0.5); }
+.rarity-glow-epic { box-shadow: 0 0 14px oklch(0.62 0.22 295 / 0.6); }
+.rarity-glow-legendary { box-shadow: 0 0 18px oklch(0.72 0.18 60 / 0.7); animation: legendary-pulse 2s ease-in-out infinite; }
+
+@keyframes legendary-pulse {
+  0%, 100% { box-shadow: 0 0 18px oklch(0.72 0.18 60 / 0.7); }
+  50% { box-shadow: 0 0 28px oklch(0.80 0.20 60 / 0.9); }
+}
+
+/* HP bar pulse on damage */
+@keyframes hp-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+.hp-shake {
+  animation: hp-shake 0.2s ease-in-out;
+}
+
+/* Scanline overlay for "retro screen" feel */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    oklch(0 0 0 / 0.15) 0px,
+    oklch(0 0 0 / 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* Glow text for important numbers */
+.glow-text {
+  text-shadow: 0 0 8px currentColor;
+}
+
+/* Status effect chips */
+.effect-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+  background: oklch(0 0 0 / 0.3);
+}
+
+/* Glitch animation on combat start */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+.glitch {
+  animation: glitch 0.3s linear;
+}
+
+/* Pixel font helper */
+.font-pixel {
+  font-family: var(--font-pixel), var(--font-geist-mono), monospace;
+  letter-spacing: 0.05em;
+}
+
+/* Hide scrollbar but allow scroll */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
