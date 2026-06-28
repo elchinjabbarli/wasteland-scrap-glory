@@ -1,0 +1,15 @@
+{
+  "name": "wasteland-chat-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "start": "bun index.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.4"
+  }
+}

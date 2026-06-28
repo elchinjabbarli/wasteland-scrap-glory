@@ -18,6 +18,10 @@ import { ExpeditionView } from "@/components/game/expedition-view";
 import { AchievementsView } from "@/components/game/achievements-view";
 import { QuestsView } from "@/components/game/quests-view";
 import { LeaderboardView } from "@/components/game/leaderboard-view";
+import { ClanView } from "@/components/game/clan-view";
+import { RaidView } from "@/components/game/raid-view";
+import { SocialView } from "@/components/game/social-view";
+import { GlobalBossView } from "@/components/game/global-boss-view";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
 import { WeatherBanner } from "@/components/game/weather-banner";
@@ -165,6 +169,10 @@ export default function HomePage() {
         {view === "achievements" && <AchievementsView />}
         {view === "quests" && <QuestsView />}
         {view === "leaderboard" && <LeaderboardView />}
+        {view === "clan" && <ClanView />}
+        {view === "raid" && <RaidView />}
+        {view === "social" && <SocialView />}
+        {view === "globalBoss" && <GlobalBossView />}
         {view === "profile" && <ProfileView onAllocateClick={() => setShowStats(true)} />}
       </main>
 

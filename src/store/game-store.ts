@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-export type GameView = "dashboard" | "battle" | "inventory" | "profile" | "crafting" | "upgrade" | "market" | "prestige" | "expedition" | "achievements" | "quests" | "leaderboard" | "stats";
+export type GameView = "dashboard" | "battle" | "inventory" | "profile" | "crafting" | "upgrade" | "market" | "prestige" | "expedition" | "achievements" | "quests" | "leaderboard" | "stats" | "clan" | "raid" | "social" | "globalBoss";
 
 export interface PlayerData {
   id: string;
@@ -28,6 +28,7 @@ export interface PlayerData {
   battlesWon: number;
   battlesLost: number;
   kills: number;
+  clanId: string | null;
   loadout: {
     weapon: unknown | null;
     armor: unknown | null;

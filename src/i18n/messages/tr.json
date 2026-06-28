@@ -15,7 +15,11 @@
     "expedition": "Sefer",
     "achievements": "Başarımlar",
     "quests": "Görevler",
-    "leaderboard": "Liderlik"
+    "leaderboard": "Liderlik",
+    "clan": "Klan",
+    "raid": "Raid",
+    "social": "Sosyal",
+    "globalBoss": "Global Boss"
   },
   "auth": {
     "login": "Giriş Yap",
@@ -392,5 +396,61 @@
     "todayWeather": "Bugünün Hava Olayı",
     "bonusApplied": "Bonus: {bonus}",
     "penaltyApplied": "Penaltı: {penalty}"
+  },
+  "clan": {
+    "title": "Klan",
+    "subtitle": "Birleş, birlikte savaş",
+    "myClan": "Klanım",
+    "browse": "Keşfet",
+    "create": "Klan Kur",
+    "name": "Klan Adı",
+    "description": "Açıklama",
+    "cost": "Maliyet",
+    "members": "Üyeler",
+    "chat": "Sohbet",
+    "noClan": "Klanında değilsin",
+    "join": "Katıl",
+    "noMessages": "Henüz mesaj yok",
+    "typeMessage": "Mesaj yaz...",
+    "treasury": "Hazne",
+    "donate": "Bağış Yap"
+  },
+  "raid": {
+    "title": "Raid Boss",
+    "subtitle": "Klanınla birlikte boss kes",
+    "active": "Aktif Raid'ler",
+    "noActive": "Aktif raid yok",
+    "noClan": "Raid için klan gerekli",
+    "start": "Raid Başlat",
+    "startNew": "Yeni Raid Başlat",
+    "attack": "Saldır",
+    "details": "Detaylar",
+    "topContributors": "En Çok Hasar Verenler",
+    "defeated": "Yenildi!",
+    "cooldown": "{sec}sn cooldown"
+  },
+  "social": {
+    "title": "Sosyal",
+    "revenge": "İntikam",
+    "friends": "Arkadaşlar",
+    "requests": "İstekler",
+    "noRevenge": "Aktif intikam linki yok",
+    "takeRevenge": "İntikam Al!",
+    "addFriend": "Arkadaş Ekle",
+    "searchPlaceholder": "İsim veya ID ara...",
+    "friendsList": "Arkadaşların",
+    "noFriends": "Arkadaşın yok",
+    "noRequests": "İstek yok",
+    "gift": "Hediye"
+  },
+  "globalBoss": {
+    "weeklyBoss": "Haftalık Global Boss",
+    "hp": "HP",
+    "defeated": "yenildi",
+    "expired": "Süresi doldu",
+    "attack": "Saldır!",
+    "topContributors": "Top Katkıda Bulunanlar",
+    "noContributors": "Henüz katkı yok",
+    "rewardInfo": "İlk 100 hasarcıya Legendary eşya (boss yenildiğinde)"
   }
 }

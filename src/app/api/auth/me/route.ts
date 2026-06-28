@@ -56,6 +56,7 @@ export async function GET() {
       battlesWon: fullPlayer.battlesWon,
       battlesLost: fullPlayer.battlesLost,
       kills: fullPlayer.kills,
+      clanId: fullPlayer.clanId,
       loadout: fullPlayer.loadout
         ? {
             weapon: fullPlayer.loadout.weaponItem,

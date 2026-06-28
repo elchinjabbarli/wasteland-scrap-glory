@@ -2,7 +2,7 @@
 
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
-import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown } from "lucide-react";
+import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown, Users, Skull, Heart, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavBarProps {
@@ -13,7 +13,7 @@ export function NavBar({ className }: NavBarProps) {
   const { view, setView, player } = useGameStore();
   const { t } = useI18n();
 
-  const items: { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number }[] = [
+  const items: { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string; badge?: number; show?: boolean }[] = [
     { key: "dashboard", icon: Home, label: t("nav.home") },
     { key: "battle", icon: Swords, label: t("nav.battle") },
     { key: "expedition", icon: MapPin, label: t("nav.expedition") },
@@ -21,12 +21,18 @@ export function NavBar({ className }: NavBarProps) {
     { key: "crafting", icon: Hammer, label: t("nav.crafting") },
     { key: "upgrade", icon: Sparkles, label: t("nav.upgrade") },
     { key: "market", icon: Store, label: t("nav.market") },
+    { key: "clan", icon: Users, label: t("nav.clan") },
+    { key: "raid", icon: Skull, label: t("nav.raid"), show: !!player?.clanId },
+    { key: "globalBoss", icon: Globe, label: t("nav.globalBoss") },
     { key: "quests", icon: Gift, label: t("nav.quests") },
     { key: "achievements", icon: Trophy, label: t("nav.achievements") },
     { key: "leaderboard", icon: Crown, label: t("nav.leaderboard") },
+    { key: "social", icon: Heart, label: t("nav.social") },
     { key: "prestige", icon: Star, label: t("nav.prestige") },
     { key: "profile", icon: User, label: t("nav.profile"), badge: player?.statPoints ?? 0 },
   ];
+
+  const visibleItems = items.filter((it) => it.show !== false);
 
   return (
     <nav
@@ -38,7 +44,7 @@ export function NavBar({ className }: NavBarProps) {
       )}
       style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}
     >
-      {items.map((it) => {
+      {visibleItems.map((it) => {
         const active = view === it.key;
         return (
           <button

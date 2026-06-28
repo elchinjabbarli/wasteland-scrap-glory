@@ -2,6 +2,7 @@
 // Faz 1: Karakter, Inventory, Temel PvP
 // Faz 2: Crafting, Upgrade, Karaborsa, Prestige
 // Faz 3: Seferler, Başarımlar, Görevler, Liderlik, Hava Olayı
+// Faz 4: Klan, Raid, İntikam, Arkadaşlık, Global Boss
 
 generator client {
   provider = "prisma-client-js"
@@ -60,6 +61,10 @@ model Player {
   lastFlagAt         DateTime? @map("last_flag_at")
   questsClaimedAt    DateTime? @map("quests_claimed_at") // son günlük görev ödülü
 
+  // Faz 4: Klan + Sosyal
+  clanId             String?  @map("clan_id")
+  clanJoinedAt       DateTime? @map("clan_joined_at")
+
   // İstatistikler
   battlesTotal  Int      @default(0) @map("battles_total")
   battlesWon    Int      @default(0) @map("battles_won")
@@ -81,6 +86,14 @@ model Player {
   expeditions   Expedition[]
   achievements  PlayerAchievement[]
   dailyQuests   DailyQuest[]
+  clanMemberships ClanMember[]
+  clanMessagesSent ClanMessage[]
+  raidContributions RaidContribution[]
+  revengeLinksAsVictim RevengeLink[] @relation("revenge_victim")
+  revengeLinksAsKiller RevengeLink[] @relation("revenge_killer")
+  friendshipsInitiated Friendship[] @relation("friendship_initiator")
+  friendshipsReceived Friendship[] @relation("friendship_receiver")
+  globalBossContributions GlobalBossContribution[]
 
   @@map("players")
 }
@@ -494,4 +507,203 @@ model WeatherEvent {
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("weather_events")
+}
+
+// ============================================================
+// FAZ 4: CLAN - Klan
+// ============================================================
+model Clan {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String   @default("")
+  leaderId      String   @map("leader_id")
+  // Not: leader Player ile cascade yok (player silinince klan kalabilir), ama leaderId string tutulur
+
+  level         Int      @default(1)
+  treasury      Int      @default(0) // hurda hazne
+  treasuryTechPart Int   @default(0) @map("treasury_tech_part")
+
+  // Sembol/rükabe (Faz 5'te kozmetik)
+  badge         String   @default("shield")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  members       ClanMember[]
+  messages      ClanMessage[]
+  raids         RaidBoss[]
+
+  @@map("clans")
+}
+
+model ClanMember {
+  id            String   @id @default(cuid())
+  clanId        String   @map("clan_id")
+  clan          Clan     @relation(fields: [clanId], references: [id], onDelete: Cascade)
+  playerId      String   @unique @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  role          String   @default("MEMBER") // LEADER | OFFICER | MEMBER
+  joinedAt      DateTime @default(now()) @map("joined_at")
+
+  // Katkı (donation toplamı)
+  totalDonated  Int      @default(0) @map("total_donated")
+
+  @@index([clanId])
+  @@map("clan_members")
+}
+
+model ClanMessage {
+  id            String   @id @default(cuid())
+  clanId        String   @map("clan_id")
+  clan          Clan     @relation(fields: [clanId], references: [id], onDelete: Cascade)
+  senderId      String   @map("sender_id")
+  sender        Player   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  content       String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([clanId, createdAt])
+  @@map("clan_messages")
+}
+
+// ============================================================
+// FAZ 4: RAID BOSS - Grup Raid
+// ============================================================
+model RaidBoss {
+  id            String   @id @default(cuid())
+  clanId        String   @map("clan_id")
+  clan          Clan     @relation(fields: [clanId], references: [id], onDelete: Cascade)
+
+  code          String   // "mutant_titan", "radyasyon_demon", ...
+  name          String
+  maxHp         Int      @map("max_hp")
+  currentHp     Int      @map("current_hp")
+
+  startedAt     DateTime @default(now()) @map("started_at")
+  expiresAt     DateTime @map("expires_at") // 24 saat
+  status        String   @default("ACTIVE") // ACTIVE | DEFEATED | EXPIRED
+  resolvedAt    DateTime? @map("resolved_at")
+
+  contributions RaidContribution[]
+
+  @@index([clanId])
+  @@index([status])
+  @@map("raid_bosses")
+}
+
+model RaidContribution {
+  id            String   @id @default(cuid())
+  raidId        String   @map("raid_id")
+  raid          RaidBoss @relation(fields: [raidId], references: [id], onDelete: Cascade)
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  damage        Int      @default(0)
+  attacks       Int      @default(0)
+  lastAttackAt  DateTime @default(now()) @map("last_attack_at")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([raidId, playerId])
+  @@index([raidId, damage])
+  @@map("raid_contributions")
+}
+
+// ============================================================
+// FAZ 4: REVENGE LINK - İntikam bağlantısı
+// ============================================================
+model RevengeLink {
+  id            String   @id @default(cuid())
+  victimId      String   @map("victim_id")
+  victim        Player   @relation("revenge_victim", fields: [victimId], references: [id], onDelete: Cascade)
+  killerId      String   @map("killer_id")
+  killer        Player   @relation("revenge_killer", fields: [killerId], references: [id], onDelete: Cascade)
+
+  // Kaybedilen eşya bilgisi (snapshot)
+  itemName      String   @map("item_name")
+  itemRarity    String   @map("item_rarity")
+  itemTemplateCode String? @map("item_template_code")
+
+  // Orijinal item silinmiş olabilir, recreate için şablon bilgisi saklanır
+  itemDamage    Int      @default(0) @map("item_damage")
+  itemArmor     Int      @default(0) @map("item_armor")
+  itemHpBonus   Int      @default(0) @map("item_hp_bonus")
+  itemElement   String   @default("PHYSICAL") @map("item_element")
+  itemSlot      String   @default("WEAPON") @map("item_slot")
+  itemIcon      String   @default("sword") @map("item_icon")
+
+  expiresAt     DateTime @map("expires_at") // 24 saat
+  used          Boolean  @default(false)
+  usedAt        DateTime? @map("used_at")
+  result        String?  // WIN | LOSS | null (henüz kullanılmadı)
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([victimId])
+  @@index([killerId])
+  @@map("revenge_links")
+}
+
+// ============================================================
+// FAZ 4: FRIENDSHIP - Arkadaşlık
+// ============================================================
+model Friendship {
+  id            String   @id @default(cuid())
+  playerId      String   @map("player_id") // istek gönderen
+  player        Player   @relation("friendship_initiator", fields: [playerId], references: [id], onDelete: Cascade)
+  friendId      String   @map("friend_id") // istek alan
+  friend        Player   @relation("friendship_receiver", fields: [friendId], references: [id], onDelete: Cascade)
+
+  status        String   @default("PENDING") // PENDING | ACCEPTED | REJECTED
+  createdAt     DateTime @default(now()) @map("created_at")
+  resolvedAt    DateTime? @map("resolved_at")
+
+  // Günlük hediye
+  lastGiftFromPlayer DateTime? @map("last_gift_from_player")
+  lastGiftFromFriend DateTime? @map("last_gift_from_friend")
+
+  @@unique([playerId, friendId])
+  @@index([playerId])
+  @@index([friendId])
+  @@map("friendships")
+}
+
+// ============================================================
+// FAZ 4: GLOBAL BOSS - Haftalık global boss
+// ============================================================
+model GlobalBoss {
+  id            String   @id @default(cuid())
+  week          String   @unique // "2026-W27" formatında
+  code          String
+  name          String
+  maxHp         Int      @map("max_hp")
+  currentHp     Int      @map("current_hp")
+
+  startedAt     DateTime @default(now()) @map("started_at")
+  expiresAt     DateTime @map("expires_at") // Pazar gece yarısı
+  status        String   @default("ACTIVE") // ACTIVE | DEFEATED | EXPIRED
+  resolvedAt    DateTime? @map("resolved_at")
+
+  contributions GlobalBossContribution[]
+
+  @@map("global_bosses")
+}
+
+model GlobalBossContribution {
+  id            String   @id @default(cuid())
+  globalBossId  String   @map("global_boss_id")
+  globalBoss    GlobalBoss @relation(fields: [globalBossId], references: [id], onDelete: Cascade)
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  damage        Int      @default(0)
+  attacks       Int      @default(0)
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([globalBossId, playerId])
+  @@index([globalBossId, damage])
+  @@map("global_boss_contributions")
 }

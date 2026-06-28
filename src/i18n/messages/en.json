@@ -15,7 +15,11 @@
     "expedition": "Expedition",
     "achievements": "Achievements",
     "quests": "Quests",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "clan": "Clan",
+    "raid": "Raid",
+    "social": "Social",
+    "globalBoss": "Global Boss"
   },
   "auth": {
     "login": "Log In",
@@ -392,5 +396,61 @@
     "todayWeather": "Today's Weather",
     "bonusApplied": "Bonus: {bonus}",
     "penaltyApplied": "Penalty: {penalty}"
+  },
+  "clan": {
+    "title": "Clan",
+    "subtitle": "Unite, fight together",
+    "myClan": "My Clan",
+    "browse": "Browse",
+    "create": "Create Clan",
+    "name": "Clan Name",
+    "description": "Description",
+    "cost": "Cost",
+    "members": "Members",
+    "chat": "Chat",
+    "noClan": "You're not in a clan",
+    "join": "Join",
+    "noMessages": "No messages yet",
+    "typeMessage": "Type a message...",
+    "treasury": "Treasury",
+    "donate": "Donate"
+  },
+  "raid": {
+    "title": "Raid Boss",
+    "subtitle": "Defeat bosses with your clan",
+    "active": "Active Raids",
+    "noActive": "No active raids",
+    "noClan": "Clan required for raids",
+    "start": "Start Raid",
+    "startNew": "Start New Raid",
+    "attack": "Attack",
+    "details": "Details",
+    "topContributors": "Top Contributors",
+    "defeated": "Defeated!",
+    "cooldown": "{sec}s cooldown"
+  },
+  "social": {
+    "title": "Social",
+    "revenge": "Revenge",
+    "friends": "Friends",
+    "requests": "Requests",
+    "noRevenge": "No active revenge links",
+    "takeRevenge": "Take Revenge!",
+    "addFriend": "Add Friend",
+    "searchPlaceholder": "Search by name or ID...",
+    "friendsList": "Your Friends",
+    "noFriends": "No friends yet",
+    "noRequests": "No requests",
+    "gift": "Gift"
+  },
+  "globalBoss": {
+    "weeklyBoss": "Weekly Global Boss",
+    "hp": "HP",
+    "defeated": "defeated",
+    "expired": "Expired",
+    "attack": "Attack!",
+    "topContributors": "Top Contributors",
+    "noContributors": "No contributors yet",
+    "rewardInfo": "Top 100 damagers get Legendary item (when boss defeated)"
   }
 }
