@@ -27,6 +27,7 @@ import { WeeklyEventBanner } from "@/components/game/weekly-event-banner";
 import { Tutorial } from "@/components/game/tutorial";
 import { SettingsView } from "@/components/game/settings-view";
 import { StreakBanner } from "@/components/game/streak-banner";
+import { TournamentView } from "@/components/game/tournament-view";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
 import { WeatherBanner } from "@/components/game/weather-banner";
@@ -180,6 +181,7 @@ export default function HomePage() {
         {view === "globalBoss" && <GlobalBossView />}
         {view === "badges" && <BadgesView />}
         {view === "settings" && <SettingsView />}
+        {view === "tournament" && <TournamentView />}
         {view === "profile" && <ProfileView onAllocateClick={() => setShowStats(true)} />}
       </main>
 

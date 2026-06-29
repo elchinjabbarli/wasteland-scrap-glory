@@ -101,6 +101,9 @@ model Player {
   globalBossContributions GlobalBossContribution[]
   badges              PlayerBadge[]
   titles              PlayerTitle[]
+  tournamentParticipations TournamentParticipant[]
+  tournamentMatchesAsA TournamentMatch[] @relation("tournament_match_a")
+  tournamentMatchesAsB TournamentMatch[] @relation("tournament_match_b")
 
   @@map("players")
 }
@@ -769,4 +772,86 @@ model WeeklyEvent {
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("weekly_events")
+}
+
+// ============================================================
+// FAZ 6: TOURNAMENT - PvP Turnuva
+// ============================================================
+model Tournament {
+  id            String   @id @default(cuid())
+  week          String   @unique // "2026-W27"
+  type          String   @default("WEEKLY_PVP") // WEEKLY_PVP | CHAMPIONSHIP
+  name          String
+  description   String   @default("")
+
+  // Katılım ücreti
+  entryFee      Int      @default(50) @map("entry_fee")
+  entryCurrency String   @default("SCRAP") // SCRAP | TECH_PART
+
+  // Bracket
+  maxParticipants Int    @default(16) @map("max_participants")
+  currentRound  Int      @default(0) @map("current_round") // 0 = registration, 1-N = rounds
+  totalRounds   Int      @default(4) @map("total_rounds") // 16→8→4→2→1 = 4 rounds
+
+  // Ödül havuzu
+  prizePool     Int      @default(0) @map("prize_pool")
+  prizeCurrency String   @default("SCRAP") @map("prize_currency")
+
+  // Durum
+  status        String   @default("REGISTRATION") // REGISTRATION | ACTIVE | COMPLETED
+  startedAt     DateTime? @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  expiresAt     DateTime @map("expires_at") // kayıt süresi
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  participants  TournamentParticipant[]
+  matches       TournamentMatch[]
+
+  @@map("tournaments")
+}
+
+model TournamentParticipant {
+  id            String   @id @default(cuid())
+  tournamentId  String   @map("tournament_id")
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  playerId      String   @map("player_id")
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  seed          Int      @default(0) // bracket pozisyonu
+  eliminated    Boolean  @default(false)
+  eliminatedRound Int    @default(0) @map("eliminated_round")
+  finalRank     Int      @default(0) @map("final_rank")
+
+  joinedAt      DateTime @default(now()) @map("joined_at")
+
+  @@unique([tournamentId, playerId])
+  @@index([tournamentId])
+  @@map("tournament_participants")
+}
+
+model TournamentMatch {
+  id            String   @id @default(cuid())
+  tournamentId  String   @map("tournament_id")
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  round         Int      @default(1) // 1 = round of 16, 2 = QF, 3 = SF, 4 = Final
+  matchNumber   Int      @default(1) @map("match_number") // round içindeki maç no
+
+  playerAId     String   @map("player_a_id")
+  playerA       Player   @relation("tournament_match_a", fields: [playerAId], references: [id], onDelete: Cascade)
+  playerBId     String?  @map("player_b_id") // null = bye (otomatik geç)
+  playerB       Player?  @relation("tournament_match_b", fields: [playerBId], references: [id], onDelete: Cascade)
+
+  winnerId      String?  @map("winner_id")
+  scoreA        Int      @default(0) @map("score_a") // kazanılan round sayısı
+  scoreB        Int      @default(0) @map("score_b")
+
+  status        String   @default("PENDING") // PENDING | COMPLETED
+  playedAt      DateTime? @map("played_at")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tournamentId, round])
+  @@map("tournament_matches")
 }

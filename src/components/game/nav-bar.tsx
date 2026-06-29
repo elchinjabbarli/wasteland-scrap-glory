@@ -2,7 +2,7 @@
 
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
-import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown, Users, Skull, Heart, Globe, Award, Settings } from "lucide-react";
+import { Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star, MapPin, Trophy, Gift, Crown, Users, Skull, Heart, Globe, Award, Settings, Swords as Tournament } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavBarProps {
@@ -24,6 +24,7 @@ export function NavBar({ className }: NavBarProps) {
     { key: "clan", icon: Users, label: t("nav.clan") },
     { key: "raid", icon: Skull, label: t("nav.raid"), show: !!player?.clanId },
     { key: "globalBoss", icon: Globe, label: t("nav.globalBoss") },
+    { key: "tournament", icon: Trophy, label: t("nav.battle") === "Battle" ? "Tournament" : "Turnuva" },
     { key: "quests", icon: Gift, label: t("nav.quests") },
     { key: "achievements", icon: Trophy, label: t("nav.achievements") },
     { key: "leaderboard", icon: Crown, label: t("nav.leaderboard") },

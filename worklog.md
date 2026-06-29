@@ -678,3 +678,57 @@ PRODUCTION HAZIR:
 - 24 game lib (streak.ts eklendi)
 - 37 UI component (settings-view, streak-banner eklendi)
 - Tüm sistemler çalışıyor, hata yok
+
+---
+Task ID: 6.1-tournament
+Agent: main
+Task: Faz 6 Başlangıç - PvP Turnuva Sistemi
+
+Work Log:
+- docs/FAZ-6-PLAN.md: 8 yeni sistem planlandı (Turnuva, Dünya Olayları, Setler, Grafikler, Ses, Boss'lar, Hikaye, Özelleştirme)
+- prisma/schema.prisma: 3 yeni model
+  - Tournament (week unique, type, entryFee, maxParticipants, prizePool, status, currentRound)
+  - TournamentParticipant (tournamentId+playerId unique, seed, eliminated, finalRank)
+  - TournamentMatch (round, matchNumber, playerA/B, winnerId, scoreA/B, status)
+  - db:push başarıyla
+- src/lib/game/tournament.ts: Turnuva sistemi
+  - getCurrentTournament (haftalık otomatik oluşturma, Pazar bitiş)
+  - joinTournament (50 Hurda entry, prizePool'a eklenir)
+  - startTournament (bracket oluşturma, 16→8→4→2→1)
+  - playTournamentMatch (gerçek rakip ile savaş simülasyonu)
+  - checkRoundComplete (sonraki round otomatik oluşturma)
+  - completeTournament (ödül dağıtımı: 50/25/10/10/2.5%)
+  - getPlayerTournamentStatus (player'ın durumu + bracket)
+  - Ödül dağılımı: Şampiyon %50, Finalist %25, Yarı %10, Çeyrek %2.5
+- API routes (3 yeni):
+  - /api/tournament/current (GET — turnuva durumu)
+  - /api/tournament/join (POST — kayıt)
+  - /api/tournament/play (POST — maç oyna)
+- src/components/game/tournament-view.tsx: Turnuva UI
+  - Turnuva bilgisi (katılımcı, ödül havuzu, tur)
+  - Kayıt / Katılım ekranı (entry fee kontrol)
+  - Bekleyen maç kartı (rakip info, "Savaş!" butonu)
+  - Eleme durumu (💀 Elendin)
+  - Şampiyon rozeti (🏆 Crown animasyonu)
+  - Turnuva ağacı (bracket — round'lar halinde, player match highlight)
+  - Senin maçların listesi
+  - Ödül dağılımı tablosu
+- nav-bar.tsx: 18 sekme (Tournament eklendi)
+- store + page.tsx: tournament view entegre
+
+Stage Summary:
+- Faz 6 ilk sistem: PvP Turnuva TAMAMLANDI
+- Lint temiz
+- API'ler curl ile test edildi (hepsi 200):
+  1. tournament/current (REGISTRATION, 0/16, prizePool 0) ✓
+  2. tournament/join (success, 50 Hurda) ✓
+  3. tournament/current (1/16, prizePool 50, participation seed 1) ✓
+- Haftalık turnuva: 16 kişilik eleme, 4 round, ödül havuzu %50 şampiyon
+- Bracket otomatik oluşturma (round tamamlandığında sonraki round)
+- Production'da: mock opponent yerine gerçek player vs player (socket.io ile)
+
+SIRADAKİ (Faz 6 devam):
+- 6.2 Dünya Olayları (random boss istilası, caravan, meteor)
+- 6.3 Eşya Setleri (2/4/6 parça bonusları)
+- 6.4 İstatistik Grafikleri (chart.js)
+- 6.5 Ses Efektleri (Web Audio API)
