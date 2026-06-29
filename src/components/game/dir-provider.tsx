@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useGameStore } from "@/store/game-store";
 import { useI18n, isRTL } from "@/i18n/request";
 
-/** Html dir/lang attribute'larını dinamik günceller */
 export function DirProvider() {
   const { locale } = useI18n();
 

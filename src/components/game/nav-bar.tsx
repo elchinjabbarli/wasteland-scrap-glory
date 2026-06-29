@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
 import {
-  Home, Swords, Backpack, User, Hammer, Sparkles, Store, Star,
-  MapPin, Trophy, Gift, Crown, Users, Skull, Heart, Globe, Award, Settings,
-  MoreHorizontal, X,
+  Home, Swords, Backpack, User, Gift, MoreHorizontal, X,
+  MapPin, Hammer, Sparkles, Store, Star,
+  Trophy, Crown, Users, Skull, Heart, Globe, Award, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,7 +15,7 @@ interface NavBarProps {
   className?: string;
 }
 
-// Ana navigasyon (her zaman görünür — 5 buton)
+// Ana navigasyon — 5 buton (her zaman görünür)
 const PRIMARY_NAV: { key: GameView; icon: React.ComponentType<{ className?: string }>; labelKey: string }[] = [
   { key: "dashboard", icon: Home, labelKey: "nav.home" },
   { key: "battle", icon: Swords, labelKey: "nav.battle" },
@@ -24,7 +24,7 @@ const PRIMARY_NAV: { key: GameView; icon: React.ComponentType<{ className?: stri
   { key: "profile", icon: User, labelKey: "nav.profile" },
 ];
 
-// İkincil navigasyon (daha fazla menüsünde)
+// İkincil navigasyon — "Daha Fazla" menüsünde
 const SECONDARY_NAV: { key: GameView; icon: React.ComponentType<{ className?: string }>; labelKey: string; customLabel?: { tr: string; en: string } }[] = [
   { key: "expedition", icon: MapPin, labelKey: "nav.expedition" },
   { key: "crafting", icon: Hammer, labelKey: "nav.crafting" },
@@ -47,15 +47,12 @@ export function NavBar({ className }: NavBarProps) {
   const { t } = useI18n();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  // Raid sadece klan üyelerine göster
   const secondaryItems = SECONDARY_NAV.filter((it) => {
     if (it.key === "raid" && !player?.clanId) return false;
     return true;
   });
 
-  // Aktif view primary'de mi?
   const activeInPrimary = PRIMARY_NAV.some((it) => it.key === view);
-  // Aktif view secondary'de mi?
   const activeInSecondary = secondaryItems.some((it) => it.key === view);
 
   function handleSelect(v: GameView) {
@@ -63,9 +60,16 @@ export function NavBar({ className }: NavBarProps) {
     setMoreOpen(false);
   }
 
+  function getLabel(it: { labelKey: string; customLabel?: { tr: string; en: string } }): string {
+    if (it.customLabel) {
+      return t("nav.battle") === "Battle" ? it.customLabel.en : it.customLabel.tr;
+    }
+    return t(it.labelKey);
+  }
+
   return (
     <>
-      {/* Daha Fazla menüsü — overlay */}
+      {/* Daha Fazla menüsü — alttan açılır panel */}
       <AnimatePresence>
         {moreOpen && (
           <motion.div
@@ -76,42 +80,40 @@ export function NavBar({ className }: NavBarProps) {
             onClick={() => setMoreOpen(false)}
           >
             <motion.div
-              initial={{ y: 300 }}
+              initial={{ y: 400 }}
               animate={{ y: 0 }}
-              exit={{ y: 300 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-2xl bg-wasteland-panel border-t-4 border-rust p-4 rounded-t-2xl"
+              exit={{ y: 400 }}
+              transition={{ type: "spring", damping: 28, stiffness: 350 }}
+              className="w-full max-w-2xl bg-wasteland-panel border-t-4 border-rust rounded-t-3xl p-5"
               onClick={(e) => e.stopPropagation()}
-              style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+              style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
             >
+              <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-pixel text-sm font-bold text-accent uppercase tracking-wider">
                   {t("nav.battle") === "Battle" ? "More" : "Daha Fazla"}
                 </h3>
-                <button onClick={() => setMoreOpen(false)} className="text-muted-foreground hover:text-foreground p-1">
+                <button onClick={() => setMoreOpen(false)} className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+              <div className="grid grid-cols-4 gap-2.5">
                 {secondaryItems.map((it) => {
                   const active = view === it.key;
-                  const label = it.customLabel
-                    ? (t("nav.battle") === "Battle" ? it.customLabel.en : it.customLabel.tr)
-                    : t(it.labelKey);
+                  const label = getLabel(it);
                   return (
                     <button
                       key={it.key}
                       onClick={() => handleSelect(it.key)}
                       className={cn(
-                        "flex flex-col items-center gap-1.5 py-3 px-1 border-2 transition-all min-h-[64px]",
-                        "pixel-button",
+                        "flex flex-col items-center gap-2 py-3 px-1 rounded-xl border-2 transition-all min-h-[72px]",
                         active
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-card/50 text-muted-foreground border-border hover:text-foreground hover:border-accent"
                       )}
                     >
-                      <it.icon className={cn("w-5 h-5", active && "glow-text")} />
-                      <span className={cn("font-pixel text-[7px] uppercase tracking-wider text-center leading-tight", active && "font-bold")}>
+                      <it.icon className="w-6 h-6" />
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-center leading-tight">
                         {label}
                       </span>
                     </button>
@@ -123,15 +125,14 @@ export function NavBar({ className }: NavBarProps) {
         )}
       </AnimatePresence>
 
-      {/* Ana navigasyon — 5 buton + "Daha Fazla" */}
+      {/* Ana navigasyon — sabit alt çubuk */}
       <nav
         className={cn(
-          "sticky bottom-0 left-0 right-0 z-50 bg-wasteland-panel/95 backdrop-blur-sm border-t-2 border-wasteland-border",
-          "px-1 py-1.5 flex justify-around items-stretch gap-0.5",
-          "shadow-[0_-4px_0_0_oklch(0_0_0/0.5)]",
+          "fixed bottom-0 left-0 right-0 z-50 bg-wasteland-panel/98 backdrop-blur-md border-t-2 border-wasteland-border",
+          "flex justify-around items-stretch",
           className
         )}
-        style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {PRIMARY_NAV.map((it) => {
           const active = view === it.key;
@@ -142,23 +143,26 @@ export function NavBar({ className }: NavBarProps) {
               key={it.key}
               onClick={() => handleSelect(it.key)}
               className={cn(
-                "flex flex-col items-center gap-0.5 py-2 px-2 transition-all border-2 flex-1 min-h-[52px] min-w-[56px]",
-                "pixel-button",
-                active
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card/50 text-muted-foreground border-border hover:text-foreground hover:border-accent"
+                "flex flex-col items-center justify-center gap-1 py-2.5 flex-1 transition-all min-h-[60px] relative",
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
-              style={active ? { boxShadow: "0 0 12px var(--primary)" } : undefined}
             >
+              {/* Aktif çizgi */}
+              {active && (
+                <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-full" />
+              )}
               <div className="relative">
-                <it.icon className={cn("w-5 h-5", active && "glow-text")} />
+                <it.icon className={cn("w-6 h-6", active && "text-primary")} />
                 {badge > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-accent text-accent-foreground text-[8px] font-bold flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center rounded-full">
                     {badge}
                   </span>
                 )}
               </div>
-              <span className={cn("font-pixel text-[8px] uppercase tracking-wider", active && "font-bold")}>
+              <span className={cn(
+                "text-[10px] font-bold uppercase tracking-wide",
+                active && "text-primary"
+              )}>
                 {t(it.labelKey)}
               </span>
             </button>
@@ -169,17 +173,20 @@ export function NavBar({ className }: NavBarProps) {
         <button
           onClick={() => setMoreOpen(true)}
           className={cn(
-            "flex flex-col items-center gap-0.5 py-2 px-2 transition-all border-2 flex-1 min-h-[52px] min-w-[56px]",
-            "pixel-button",
-            activeInSecondary
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-card/50 text-muted-foreground border-border hover:text-foreground hover:border-accent"
+            "flex flex-col items-center justify-center gap-1 py-2.5 flex-1 transition-all min-h-[60px] relative",
+            activeInSecondary ? "text-primary" : "text-muted-foreground hover:text-foreground"
           )}
         >
+          {activeInSecondary && (
+            <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-full" />
+          )}
           <div className="relative">
-            <MoreHorizontal className={cn("w-5 h-5", activeInSecondary && "glow-text")} />
+            <MoreHorizontal className={cn("w-6 h-6", activeInSecondary && "text-primary")} />
           </div>
-          <span className={cn("font-pixel text-[8px] uppercase tracking-wider", activeInSecondary && "font-bold")}>
+          <span className={cn(
+            "text-[10px] font-bold uppercase tracking-wide",
+            activeInSecondary && "text-primary"
+          )}>
             {t("nav.battle") === "Battle" ? "More" : "Daha Fazla"}
           </span>
         </button>
