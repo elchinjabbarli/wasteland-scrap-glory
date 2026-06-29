@@ -924,3 +924,26 @@ GDD TAM UYUMLULUK RAPORU:
 - Bölüm 17 (Sözlük): ✅ %95 (tüm formüller, states, DB ilişkileri)
 
 TOPLAM GDD UYUMLULUK: ~93%
+
+---
+Task ID: supabase-migration
+Agent: main
+Task: SQLite → Supabase PostgreSQL Migration
+
+Work Log:
+- prisma/schema.prisma: provider "sqlite" → "postgresql"
+- .env: DATABASE_URL = Supabase Session Pooler connection string
+  - Host: aws-1-eu-central-1.pooler.supabase.com:5432
+  - User: postgres.bxunjxcfjxoaolqhziox
+  - Password: URL-encoded (@→%40, !→%21)
+- bun run db:push: 30+ tablo Supabase'e oluşturuldu (31.69s)
+- bun run db:generate: Prisma Client PostgreSQL için regenerate edildi
+- Tüm seed data (52 ItemTemplate, 21 Achievement) Supabase'e yüklendi
+- E2E test: Login → Onboarding → Inventory → PvP hepsi 200 ✓
+
+Stage Summary:
+- ✅ Supabase PostgreSQL migration TAMAMLANDI
+- SQLite artık kullanılmıyor — production DB = Supabase
+- 500MB ücretsiz PostgreSQL (GDD 16.3 uyumlu)
+- Tüm API'ler Supabase ile çalışıyor
+- E2E doğrulandı: SFHero | Sv1 | COL | 100 scrap | Çöl Hançeri | PvP 9 rounds
