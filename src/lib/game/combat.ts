@@ -54,6 +54,7 @@ export interface CombatantState {
   name: string;
   faction: string;
   level: number;
+  prestige: number;
   maxHp: number;
   currentHp: number;
   shieldHp: number;
@@ -118,6 +119,7 @@ function toCombatant(stats: CompiledPlayerStats, isPlayer: boolean): CombatantSt
     name: stats.name,
     faction: stats.faction,
     level: stats.level,
+    prestige: stats.prestige,
     maxHp: stats.maxHp,
     currentHp: stats.currentHp,
     shieldHp: 0,
@@ -148,6 +150,7 @@ function toCombatantFromMock(mock: MockOpponent, isPlayer: boolean): CombatantSt
     name: mock.name,
     faction: mock.faction,
     level: mock.level,
+    prestige: mock.prestige,
     maxHp: mock.maxHp,
     currentHp: mock.currentHp,
     shieldHp: 0,
@@ -286,8 +289,8 @@ function performAttack(
     ? energyDamage(attacker.weaponDamage, attacker.int)
     : physicalDamage(attacker.weaponDamage, attacker.str);
 
-  // Prestige bonus (sadece player için)
-  const prestMul = attacker.isPlayer ? prestigeMultiplier(0) : 1; // mock için prestige 0
+  // Prestige bonus (sadece player için) — GDD 8.2: Kalıcı +%2 Hasar
+  const prestMul = attacker.isPlayer ? prestigeMultiplier(attacker.prestige) : 1;
   let damage = Math.floor(baseDmg * prestMul);
 
   // Empower buff
