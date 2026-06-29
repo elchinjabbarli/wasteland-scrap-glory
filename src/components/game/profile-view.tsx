@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useGameStore } from "@/store/game-store";
+import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
 import { useQuery } from "@tanstack/react-query";
 import { PixelPanel } from "./pixel-panel";
-import { FactionIcon } from "./faction-icon";
 import { StatBar } from "./stat-bar";
 import { CurrencyDisplay } from "./currency-display";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,10 @@ import { FACTIONS } from "@/lib/game/constants";
 import { maxHp, critChance, evasionChance, attackSpeedMultiplier } from "@/lib/game/stats";
 import { STAT_INFO, STAT_KEYS, type StatKey } from "@/lib/game/prestige";
 import { TITLES } from "@/lib/game/badges";
-import { Loader2, Trophy, Skull, Swords, Plus, Award, Star, Lock } from "lucide-react";
+import {
+  Loader2, Trophy, Skull, Swords, Plus, Award, Star, Lock,
+  MapPin, Hammer, Sparkles, Store, Users, Globe, Heart, Crown, Settings, Gift,
+} from "lucide-react";
 import * as Icons from "lucide-react";
 import { PixelAvatar } from "./pixel-avatar";
 
@@ -31,7 +33,7 @@ interface HistoryEntry {
 }
 
 export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void }) {
-  const { player } = useGameStore();
+  const { player, setView } = useGameStore();
   const { t, locale } = useI18n();
   const [badgesData, setBadgesData] = useState<{ badges: Array<{ code: string; icon: string; color: string; isUnlocked: boolean; name: { tr: string; en: string } }>; titles: unknown[]; activeTitle: string | null } | null>(null);
   const [combatDetail, setCombatDetail] = useState<{ id: string; opponentName: string; rounds: unknown[] } | null>(null);
@@ -133,6 +135,45 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
             color="var(--accent)"
             size="sm"
           />
+        </div>
+      </PixelPanel>
+
+      {/* MENÜ — tüm ikincil sayfalara erişim */}
+      <PixelPanel className="p-3">
+        <h3 className="text-xs font-bold text-accent uppercase mb-2">
+          {locale === "tr" ? "Menü" : "Menu"}
+        </h3>
+        <div className="grid grid-cols-4 gap-2">
+          {([
+            { key: "expedition", icon: MapPin, label: locale === "tr" ? "Sefer" : "Expedition" },
+            { key: "crafting", icon: Hammer, label: locale === "tr" ? "Üretim" : "Craft" },
+            { key: "upgrade", icon: Sparkles, label: locale === "tr" ? "Yükselt" : "Upgrade" },
+            { key: "market", icon: Store, label: locale === "tr" ? "Pazar" : "Market" },
+            { key: "clan", icon: Users, label: locale === "tr" ? "Klan" : "Clan" },
+            { key: "raid", icon: Skull, label: locale === "tr" ? "Raid" : "Raid", hide: !player.clanId },
+            { key: "globalBoss", icon: Globe, label: locale === "tr" ? "Boss" : "Boss" },
+            { key: "tournament", icon: Trophy, label: locale === "tr" ? "Turnuva" : "Tournament" },
+            { key: "quests", icon: Gift, label: locale === "tr" ? "Görevler" : "Quests" },
+            { key: "achievements", icon: Trophy, label: locale === "tr" ? "Başarımlar" : "Achivs" },
+            { key: "leaderboard", icon: Crown, label: locale === "tr" ? "Liderlik" : "Ranks" },
+            { key: "social", icon: Heart, label: locale === "tr" ? "Sosyal" : "Social" },
+            { key: "badges", icon: Award, label: locale === "tr" ? "Rozetler" : "Badges" },
+            { key: "prestige", icon: Star, label: locale === "tr" ? "Prestij" : "Prestige" },
+            { key: "settings", icon: Settings, label: locale === "tr" ? "Ayarlar" : "Settings" },
+          ] as { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string; hide?: boolean }[])
+            .filter((it) => !it.hide)
+            .map((it) => (
+              <button
+                key={it.key}
+                onClick={() => setView(it.key)}
+                className="flex flex-col items-center gap-1.5 py-3 px-1 border-2 border-border bg-card/50 rounded-xl hover:border-accent hover:text-foreground transition-all min-h-[68px]"
+              >
+                <it.icon className="w-5 h-5 text-muted-foreground" />
+                <span className="text-[9px] font-bold uppercase text-center leading-tight text-muted-foreground">
+                  {it.label}
+                </span>
+              </button>
+            ))}
         </div>
       </PixelPanel>
 
