@@ -33,6 +33,8 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
   const { player } = useGameStore();
   const { t, locale } = useI18n();
   const [badgesData, setBadgesData] = useState<{ badges: unknown[]; titles: unknown[]; activeTitle: string | null } | null>(null);
+  const [combatDetail, setCombatDetail] = useState<{ id: string; opponentName: string; rounds: unknown[] } | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const { data: historyData, isLoading } = useQuery({
     queryKey: ["combat-history"],
@@ -49,6 +51,26 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
       .then((d) => setBadgesData(d))
       .catch(() => {});
   }, [player?.id]);
+
+  // Savaş detayı yükle
+  async function loadCombatDetail(combatId: string, opponentName: string) {
+    setLoadingDetail(true);
+    try {
+      const res = await fetch(`/api/combat/${combatId}`);
+      const data = await res.json();
+      if (data.combat) {
+        setCombatDetail({
+          id: combatId,
+          opponentName,
+          rounds: data.combat.rounds ?? [],
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingDetail(false);
+    }
+  }
 
   if (!player) return null;
 
@@ -198,9 +220,11 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
         ) : (
           <div className="space-y-1.5 max-h-72 overflow-y-auto scrollbar-thin">
             {history.map((h) => (
-              <div
+              <button
                 key={h.id}
-                className="flex items-center gap-2 p-2 border border-border bg-card/30 text-[10px] sm:text-xs"
+                onClick={() => loadCombatDetail(h.id, h.opponentName)}
+                disabled={loadingDetail}
+                className="w-full flex items-center gap-2 p-2 border border-border bg-card/30 text-[10px] sm:text-xs hover:border-accent transition-colors text-left"
               >
                 <div className="flex-shrink-0">
                   {h.won ? (
@@ -220,7 +244,7 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
                 <div className="text-[9px] text-muted-foreground/60 font-pixel">
                   {new Date(h.createdAt).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" })}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -284,6 +308,38 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
             })}
           </div>
         </PixelPanel>
+      )}
+
+      {/* Savaş detay modalı */}
+      {combatDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setCombatDetail(null)}>
+          <PixelPanel glow="rust" className="max-w-md w-full p-4 max-h-[80vh] overflow-y-auto" >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-pixel text-sm font-bold text-rust">
+                {t("battle.vs")} {combatDetail.opponentName}
+              </h3>
+              <button onClick={() => setCombatDetail(null)} className="text-muted-foreground hover:text-foreground font-pixel">✕</button>
+            </div>
+            <div className="space-y-1 max-h-60 overflow-y-auto scrollbar-thin">
+              {(combatDetail.rounds as { round: number; logText: string; finalDamage: number; critMultiplier: number; evasion: boolean }[]).map((r) => (
+                <div
+                  key={r.round}
+                  className={`text-[10px] font-pixel py-1 border-b border-border/50 last:border-0 ${
+                    r.evasion ? "text-muted-foreground italic" : r.critMultiplier > 1 ? "text-rust font-bold" : "text-foreground"
+                  }`}
+                >
+                  <span className="text-muted-foreground">[{r.round}]</span> {r.logText}
+                </div>
+              ))}
+            </div>
+            <Button
+              onClick={() => setCombatDetail(null)}
+              className="pixel-button w-full mt-3 bg-primary text-primary-foreground hover:bg-primary/90 font-pixel uppercase h-9 text-xs"
+            >
+              {t("common.close")}
+            </Button>
+          </PixelPanel>
+        </div>
       )}
     </div>
   );

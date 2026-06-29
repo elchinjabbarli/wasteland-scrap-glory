@@ -25,6 +25,8 @@ import { GlobalBossView } from "@/components/game/global-boss-view";
 import { BadgesView } from "@/components/game/badges-view";
 import { WeeklyEventBanner } from "@/components/game/weekly-event-banner";
 import { Tutorial } from "@/components/game/tutorial";
+import { SettingsView } from "@/components/game/settings-view";
+import { StreakBanner } from "@/components/game/streak-banner";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
 import { WeatherBanner } from "@/components/game/weather-banner";
@@ -177,6 +179,7 @@ export default function HomePage() {
         {view === "social" && <SocialView />}
         {view === "globalBoss" && <GlobalBossView />}
         {view === "badges" && <BadgesView />}
+        {view === "settings" && <SettingsView />}
         {view === "profile" && <ProfileView onAllocateClick={() => setShowStats(true)} />}
       </main>
 
@@ -185,6 +188,9 @@ export default function HomePage() {
 
       {/* Haftalık etkinlik banner — sadece dashboard'da */}
       {view === "dashboard" && <WeeklyEventBanner />}
+
+      {/* Günlük giriş serisi — sadece dashboard'da */}
+      {view === "dashboard" && <StreakBanner />}
 
       {/* Rewards bar — sadece dashboard'da */}
       {view === "dashboard" && <RewardsBar />}

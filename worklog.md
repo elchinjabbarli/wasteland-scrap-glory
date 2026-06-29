@@ -630,3 +630,51 @@ Stage Summary:
 - Lint temiz
 - Tüm API'ler 200 (player/badges, expedition/active, crafting/jobs)
 - HTTP 200 doğrulandı
+
+---
+Task ID: 6-qa-features
+Agent: main
+Task: QA + Yeni Özellikler (Savaş Detayı, Giriş Serisi, Ayarlar)
+
+Work Log:
+- QA: 10 API endpoint test edildi, hepsi 200, hata yok
+- profile-view.tsx: Savaş geçmişi detay modalı
+  - History items tıklanabilir (button)
+  - /api/combat/[id] fetch ile round-by-round veri çek
+  - Modal: round log text, kritik/evasion renkli
+  - Kapat butonu, dış tık ile kapatma
+- src/lib/game/streak.ts: Günlük giriş serisi sistemi
+  - 7 gün ödül tieri (20→100 Hurda, 7. gün +1 Kristal)
+  - 36 saat reset, ardışık gün bonusu
+  - getStreakInfo, claimStreakReward
+- API: /api/streak/info, /api/streak/claim
+- API: /api/settings (oyun istatistikleri + hesap bilgisi)
+- settings-view.tsx: Ayarlar & İstatistikler view'ı
+  - Hesap bilgisi (ID, isim, fraksiyon, seviye, prestij, kayıt tarihi)
+  - 8 istatistik kartı (eşya, üretim, sefer, pazar, başarım, rozet, unvan, hesap yaşı)
+  - Hakkında bölümü (versiyon, açıklama, teknoloji)
+  - Hızlı erişim butonları (rozetler, başarımlar)
+- streak-banner.tsx: Dashboard'a günlük giriş serisi banner'ı
+  - 7 günlük dot göstergesi (claimed/today/locked)
+  - Alev ikonu, "Al" butonu
+  - Bugünün ödülü gösterimi
+- nav-bar.tsx: Settings sekmesi eklendi (17 sekme)
+- page.tsx: SettingsView + StreakBanner entegre
+
+Stage Summary:
+- 3 yeni özellik eklendi: savaş detayı, giriş serisi, ayarlar
+- Lint temiz
+- Tüm yeni API'ler curl ile test edildi (hepsi 200):
+  1. streak/info (day 1, +20 Hurda) ✓
+  2. streak/claim (success, +20 scrap +10 XP) ✓
+  3. settings (8 istatistik, version 2.0.0) ✓
+  4. combat/[id] (11 round detay) ✓
+- Navigation 17 sekme (Settings eklendi)
+- Dashboard'a StreakBanner eklendi
+- Profile'da savaş geçmişi tıklanabilir (detay modal)
+
+PRODUCTION HAZIR:
+- 82 API endpoint (3 yeni)
+- 24 game lib (streak.ts eklendi)
+- 37 UI component (settings-view, streak-banner eklendi)
+- Tüm sistemler çalışıyor, hata yok
