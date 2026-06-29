@@ -13,6 +13,7 @@ export async function GET() {
 
   const items = await db.item.findMany({
     where: { ownerId: player.id },
+    include: { template: true },
     orderBy: [{ rarity: "desc" }, { upgradeLevel: "desc" }, { createdAt: "desc" }],
   });
 
@@ -34,7 +35,7 @@ export async function GET() {
       suffix: it.suffix,
       rarity: it.rarity,
       element: it.element,
-      slot: it.slot,
+      slot: it.template?.slot ?? "WEAPON",
       baseDamage: it.baseDamage,
       baseArmor: it.baseArmor,
       baseHpBonus: it.baseHpBonus,

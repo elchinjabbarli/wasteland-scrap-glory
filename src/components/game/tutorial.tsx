@@ -82,7 +82,7 @@ export function Tutorial() {
 
   useEffect(() => {
     // Sadece authenticated + onboarding sonrası göster
-    if (player && !player.name.startsWith(player.telegramName + "_")) {
+    if (player && player.name && !player.name.startsWith("Survivor")) {
       load();
     } else {
       setLoading(false);

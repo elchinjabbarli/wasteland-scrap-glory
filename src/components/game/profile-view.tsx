@@ -32,7 +32,7 @@ interface HistoryEntry {
 export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void }) {
   const { player } = useGameStore();
   const { t, locale } = useI18n();
-  const [badgesData, setBadgesData] = useState<{ badges: unknown[]; titles: unknown[]; activeTitle: string | null } | null>(null);
+  const [badgesData, setBadgesData] = useState<{ badges: Array<{ code: string; icon: string; color: string; isUnlocked: boolean; name: { tr: string; en: string } }>; titles: unknown[]; activeTitle: string | null } | null>(null);
   const [combatDetail, setCombatDetail] = useState<{ id: string; opponentName: string; rounds: unknown[] } | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 

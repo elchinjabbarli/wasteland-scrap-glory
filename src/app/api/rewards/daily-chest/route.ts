@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { claimDailyChest, getDailyChestStatus } from "@/lib/game/rewards";
 

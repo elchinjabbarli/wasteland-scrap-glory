@@ -31,7 +31,7 @@ export function getRecipeInfo(rarity: Rarity): CraftingRecipeInfo {
       if (p.scrap < recipe.scrapCost) missing.scrap = recipe.scrapCost - p.scrap;
       if (p.electronic < recipe.electronicCost) missing.electronic = recipe.electronicCost - p.electronic;
       if (p.techPart < recipe.techPartCost) missing.techPart = recipe.techPartCost - p.techPart;
-      if (p.crystalDust < recipe.crystalDustCost) missing.crystalDust = recipe.crystalDust - p.crystalDust;
+      if (p.crystalDust < recipe.crystalDustCost) missing.crystalDust = recipe.crystalDustCost - p.crystalDust;
       return missing;
     },
   };

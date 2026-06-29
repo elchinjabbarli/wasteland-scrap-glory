@@ -93,7 +93,15 @@ export async function getCurrentGlobalBoss() {
         expiresAt,
         status: "ACTIVE",
       },
-      include: { contributions: true },
+      include: {
+        contributions: {
+          include: {
+            player: { select: { id: true, name: true, faction: true, level: true } },
+          },
+          orderBy: { damage: "desc" },
+          take: 100,
+        },
+      },
     }).catch(async () => {
       // Race condition — yeniden getir
       return await db.globalBoss.findUnique({

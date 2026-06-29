@@ -18,7 +18,7 @@ export interface AchievementDef {
   points: number;
   rarity: Rarity;
   condition: {
-    type: "battles_total" | "battles_won" | "kills" | "expeditions_completed" | "items_crafted" | "market_sales" | "prestige" | "level";
+    type: "battles_total" | "battles_won" | "kills" | "expeditions_completed" | "items_crafted" | "market_sales" | "prestige" | "level" | "scrap" | "clan" | "friends_count" | "revenge_wins" | "boss_kills" | "items_owned" | "clan_wars";
     target: number;
   };
   icon: string;
@@ -188,7 +188,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: "BATTLE",
     points: 25,
     rarity: "RARE",
-    condition: { type: "revenge_wins" as "kills", target: 1 },
+    condition: { type: "revenge_wins", target: 1 },
     icon: "Swords",
   },
   {
@@ -198,7 +198,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: "BATTLE",
     points: 50,
     rarity: "EPIC",
-    condition: { type: "boss_kills" as "kills", target: 1 },
+    condition: { type: "boss_kills", target: 1 },
     icon: "Skull",
   },
   {
@@ -208,7 +208,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: "ECONOMY",
     points: 25,
     rarity: "RARE",
-    condition: { type: "items_owned" as "kills", target: 50 },
+    condition: { type: "items_owned", target: 50 },
     icon: "Package",
   },
   {
@@ -218,7 +218,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: "SOCIAL",
     points: 25,
     rarity: "RARE",
-    condition: { type: "clan" as "kills", target: 1 },
+    condition: { type: "clan", target: 1 },
     icon: "Users",
   },
   {
@@ -228,7 +228,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: "SOCIAL",
     points: 25,
     rarity: "RARE",
-    condition: { type: "friends_count" as "kills", target: 5 },
+    condition: { type: "friends_count", target: 5 },
     icon: "Heart",
   },
   {
@@ -238,7 +238,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: "SOCIAL",
     points: 50,
     rarity: "EPIC",
-    condition: { type: "clan_wars" as "kills", target: 1 },
+    condition: { type: "clan_wars", target: 1 },
     icon: "Shield",
   },
 ];

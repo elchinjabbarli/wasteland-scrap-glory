@@ -79,10 +79,6 @@ export async function getReportStatus(playerId: string) {
 export async function getPendingReports(limit: number = 20) {
   const reports = await db.playerReport.findMany({
     where: { status: "PENDING" },
-    include: {
-      reporter: { select: { id: true, name: true } },
-      reported: { select: { id: true, name: true, reportCount: true, underReview: true } },
-    },
     orderBy: { createdAt: "desc" },
     take: limit,
   });

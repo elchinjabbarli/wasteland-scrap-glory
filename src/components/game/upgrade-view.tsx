@@ -46,7 +46,7 @@ export function UpgradeView() {
         slot: it.slot ?? guessSlot(it),
       }));
       // Upgrade için: kırık olmayan, IN_INVENTORY olan, max level altındaki
-      const upgradable = all.filter((it) => it.state === "IN_INVENTORY" && it.state !== "BROKEN" && it.upgradeLevel < 10);
+      const upgradable = all.filter((it) => it.state === "IN_INVENTORY" && it.durability > 0 && it.upgradeLevel < 10);
       const repairable = all.filter((it) => it.durability < 100);
       setItems(tab === "upgrade" ? upgradable : repairable);
     } catch {

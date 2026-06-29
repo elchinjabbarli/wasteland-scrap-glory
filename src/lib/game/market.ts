@@ -87,7 +87,7 @@ export async function createListing(
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationHours * 60 * 60 * 1000);
 
-  const [_, listing] = await db.$transaction([
+  const [, , listing] = await db.$transaction([
     db.item.update({
       where: { id: itemId },
       data: { state: "LISTED", listedPrice: price },

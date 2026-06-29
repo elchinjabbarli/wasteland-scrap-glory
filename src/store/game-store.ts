@@ -96,6 +96,7 @@ export interface BattleRound {
 
 export interface BattleResult {
   ok: boolean;
+  error?: string;
   combatId: string;
   result: {
     playerWon: boolean;
@@ -105,6 +106,7 @@ export interface BattleResult {
     finalHpA: number;
     finalHpB: number;
     rounds: BattleRound[];
+    stateLog?: unknown[];
   };
   rewards: {
     xp: number;
@@ -115,7 +117,11 @@ export interface BattleResult {
     newLevel: number;
     droppedItem: { name: string; templateCode: string } | null;
     lostItem: { name: string } | null;
+    weather?: { type: string; name: { tr: string; en: string }; bonusApplied: string } | null;
   };
+  achievements?: { code: string; name: string; points: number; rarity: string }[];
+  badges?: { code: string; name: { tr: string; en: string }; color: string }[];
+  titles?: { code: string; name: { tr: string; en: string }; color: string }[];
   opponent: {
     id: string;
     name: string;

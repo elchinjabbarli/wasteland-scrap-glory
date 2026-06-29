@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
       const player = await db.player.findUnique({
         where: { telegramId: String(fromUser.id) },
         include: {
-          clanMember: { include: { clan: true } },
+          clanMemberships: { include: { clan: true } },
         },
       });
 
@@ -165,7 +165,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      if (!player.clanMember?.clan) {
+      if (!player.clanMemberships || player.clanMemberships.length === 0) {
+        await sendMessage(chatId, "❌ Bir klanda değilsin! Önce klan kur veya katıl.");
+        return NextResponse.json({ ok: true });
+      }
+
+      const clanMember = player.clanMemberships[0];
+      if (!clanMember?.clan) {
         await sendMessage(chatId, "❌ Bir klanda değilsin! Önce klan kur veya katıl.");
         return NextResponse.json({ ok: true });
       }
@@ -184,13 +190,13 @@ export async function POST(req: NextRequest) {
 
       // Gruba raid butonu gönder
       const appUrl = `${getMiniAppUrl()}/?start=raid_${result.raid!.id}`;
-      await sendRaidButton(chatId, player.clanMember.clan.name, bossDef.name, appUrl);
+      await sendRaidButton(chatId, clanMember.clan.name, bossDef.name, appUrl);
 
       // Event tracking
       trackEvent({
         playerId: player.id,
         eventType: "raid_attack" as never,
-        data: { bossCode, clanId: player.clanMember.clanId, fromTelegram: true },
+        data: { bossCode, clanId: clanMember.clanId, fromTelegram: true },
       });
 
       return NextResponse.json({ ok: true });
