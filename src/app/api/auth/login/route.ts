@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createSession, findOrCreatePlayerByTelegram, SESSION_COOKIE, SESSION_TTL_DAYS, type MockTelegramUser } from "@/lib/auth";
 import { seedItemTemplates } from "@/lib/seed";
+import { trackEvent } from "@/lib/game/analytics";
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,6 +47,13 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       maxAge: SESSION_TTL_DAYS * 24 * 60 * 60,
       path: "/",
+    });
+
+    // Faz 7: Analitik — user_login event
+    trackEvent({
+      playerId: player.id,
+      eventType: "user_login",
+      data: { tgUsername: player.telegramName },
     });
 
     return res;

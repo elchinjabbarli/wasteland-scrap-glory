@@ -70,6 +70,10 @@ model Player {
   activeTitle        String?  @map("active_title")
   tutorialStep       Int      @default(0) @map("tutorial_step")
 
+  // Faz 7: Raporlama
+  reportCount        Int      @default(0) @map("report_count")
+  underReview        Boolean  @default(false) @map("under_review")
+
   // İstatistikler
   battlesTotal  Int      @default(0) @map("battles_total")
   battlesWon    Int      @default(0) @map("battles_won")
@@ -854,4 +858,40 @@ model TournamentMatch {
 
   @@index([tournamentId, round])
   @@map("tournament_matches")
+}
+
+// ============================================================
+// FAZ 7: EVENT LOG - Analitik/Event Tracking (GDD Bölüm 15)
+// ============================================================
+model EventLog {
+  id            String   @id @default(cuid())
+  playerId      String?  @map("player_id") // null = anonim event
+  eventType     String   @map("event_type") // user_login | battle_start | battle_end | item_crafted | market_listing | market_purchase | ad_watched | iap_purchase
+  dataJson      String   @default("{}") @map("data_json") // JSON data
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([playerId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("event_logs")
+}
+
+// ============================================================
+// FAZ 7: PLAYER REPORT - Oyuncu raporlama (GDD Bölüm 14.3)
+// ============================================================
+model PlayerReport {
+  id            String   @id @default(cuid())
+  reporterId    String   @map("reporter_id")
+  reportedId    String   @map("reported_id")
+  reason        String   // CHEATING | HARASSMENT | SPAM | OTHER
+  description   String   @default("")
+  status        String   @default("PENDING") // PENDING | REVIEWING | RESOLVED | DISMISSED
+  resolvedAt    DateTime? @map("resolved_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([reportedId])
+  @@index([status])
+  @@map("player_reports")
 }

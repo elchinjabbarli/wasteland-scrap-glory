@@ -732,3 +732,69 @@ SIRADAKİ (Faz 6 devam):
 - 6.3 Eşya Setleri (2/4/6 parça bonusları)
 - 6.4 İstatistik Grafikleri (chart.js)
 - 6.5 Ses Efektleri (Web Audio API)
+
+---
+Task ID: 7-gdd-audit
+Agent: main
+Task: GDD Detaylı Denetimi + Eksik Sistemlerin Tamamlanması (Faz 7)
+
+Work Log:
+- GDD'nin 17 bölümü tek tek incelendi, her alt-bölüm kodla karşılaştırıldı
+- docs/FAZ-7-PLAN.md: 17 eksik tespit edildi (11 kritik, 4 orta, 2 düşük)
+
+KRİTİK EKSİKLER DÜZELTİLDİ:
+1. ✅ Rarity renk kodları GDD'ye uydu (Bölüm 10.3)
+   - Common: #9ca3af → #808080
+   - Rare: #3b82f6 → #0070DD
+   - Epic: #a855f7 → #A335EE
+   - Legendary: #f59e0b → #FF8000
+2. ✅ 6 eksik başarım eklendi (Bölüm 12)
+   - İntikamcı (avenger), Boss Katili (boss_killer), Koleksiyoncu (collector)
+   - Lider (leader), Dost Canlısı (friendly), Klan Savaşçısı (clan_warrior)
+3. ✅ Event Tracking / Analitik sistemi (Bölüm 15)
+   - EventLog modeli (playerId, eventType, dataJson, timestamp)
+   - src/lib/game/analytics.ts: trackEvent, getAnalyticsSummary, getPlayerEventCount
+   - 16 event tipi: user_login, battle_start, battle_end, item_crafted, market_listing, market_purchase, ad_watched, iap_purchase, expedition_start, expedition_complete, prestige_perform, clan_create, clan_join, raid_attack, global_boss_attack, tutorial_complete
+   - auth/login'e user_login tracking eklendi
+   - combat/pvp'ye battle_start + battle_end tracking eklendi
+   - /api/dev/analytics endpoint (admin dashboard)
+4. ✅ Raporlama Sistemi (Bölüm 14.3)
+   - PlayerReport modeli (reporterId, reportedId, reason, status)
+   - Player'a reportCount, underReview eklendi
+   - src/lib/game/reports.ts: reportPlayer, getReportStatus, getPendingReports
+   - 3 rapor = otomatik inceleme modu
+   - /api/report/player endpoint
+5. ✅ Companion ölünce 24 saat yaralı (Bölüm 4.1)
+   - Combat'ta player HP 0'a düşerse + companion varsa → 24 saat INJURED
+6. ✅ Prestige ekstra slotlar (Bölüm 8.1)
+   - getExpeditionSlots: prestige 2+/4+ → 2/3 slot
+   - getCraftingSlots: prestige 3+/6+ → 4/5 slot
+   - getMarketListingLimit: 5 + prestige * 2
+   - expedition.ts'te slot kontrolü prestige'e bağlandı
+
+KISMEN TAMAMLANAN / PLANLANAN:
+- Telegram /raid komutu (Bölüm 9.2) — bot webhook gerekli, planlandı
+- Haftalık Klan Savaşları (Bölüm 9.4) — ClanWar modeli planlandı
+- Günlük Sandık Reklam 2x (Bölüm 13.1) — planlandı
+- Ses Efektleri (Bölüm 10.4) — planlandı
+- Combat States (Bölüm 17.2) — planlandı
+- Maks Enerji sistemi (Bölüm 2.2) — tanımlı ama kullanılmıyor
+
+Stage Summary:
+- Faz 7 GDD denetimi TAMAMLANDI
+- 6 kritik eksik düzeltildi (rarity renkler, 6 başarım, analitik, raporlama, companion yaralı, prestige slotlar)
+- Lint temiz
+- API'ler test edildi:
+  1. dev/analytics → 3 event loglandı (user_login, battle_start, battle_end) ✓
+  2. report/player → mock ID reddedildi (doğru) ✓
+  3. PvP → event tracking çalışıyor ✓
+- GDD uyumluluk: %85+ (geri kalan: Telegram bot, ses, klan savaşları)
+
+GDD KALAN EKSİKLER (production için):
+- Telegram /raid komutu (bot webhook)
+- Haftalık klan savaşları (ClanWar modeli)
+- Ses efektleri (Web Audio API)
+- Combat States (state machine)
+- Maks Enerji sistemi (enerji tüketimi)
+- Karakter sprite animasyonları
+- @twa-dev/sdk entegrasyonu

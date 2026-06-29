@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { generateRandomItem } from "./loot";
 import { MAX_DURABILITY, type Rarity } from "./constants";
 import { getDailyWeather, type WeatherInfo } from "./weather";
+import { getExpeditionSlots } from "./prestige";
 
 // ============================================================
 // BÖLGE TANIMLARI (GDD'den)
@@ -115,12 +116,13 @@ export async function startExpedition(playerId: string, zoneType: ZoneType): Pro
     return { ok: false, error: `Bu bölge için Seviye ${zone.minLevel} gerekli (şu an ${player.level})` };
   }
 
-  // Aktif sefer slot kontrolü
+  // Aktif sefer slot kontrolü (prestige ile artar)
+  const maxSlots = getExpeditionSlots(player.prestige);
   const activeCount = await db.expedition.count({
     where: { playerId, status: "IN_PROGRESS" },
   });
-  if (activeCount >= FREE_EXPEDITION_SLOTS) {
-    return { ok: false, error: `Aktif sefer limiti (${FREE_EXPEDITION_SLOTS})` };
+  if (activeCount >= maxSlots) {
+    return { ok: false, error: `Aktif sefer limiti (${maxSlots})` };
   }
 
   // Hava olayını uygula (craftingTimeMul → burada durationMul)

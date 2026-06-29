@@ -42,6 +42,25 @@ export async function checkPrestigeEligibility(playerId: string): Promise<Presti
   };
 }
 
+// ============================================================
+// FAZ 7: Prestige ekstra slotlar (GDD 8.1)
+// ============================================================
+
+/** Prestige seviyesine göre sefer slot sayısı */
+export function getExpeditionSlots(prestigeLevel: number): number {
+  return Math.min(3, 1 + Math.floor(prestigeLevel / 2)); // 1, 1, 2, 2, 3, 3...
+}
+
+/** Prestige seviyesine göre crafting slot sayısı */
+export function getCraftingSlots(prestigeLevel: number): number {
+  return Math.min(5, 3 + Math.floor(prestigeLevel / 3)); // 3, 3, 3, 4, 4, 4, 5...
+}
+
+/** Prestige seviyesine göre market ilan limiti */
+export function getMarketListingLimit(prestigeLevel: number): number {
+  return 5 + prestigeLevel * 2; // 5, 7, 9, 11...
+}
+
 export interface PrestigeResult {
   ok: boolean;
   newPrestige?: number;

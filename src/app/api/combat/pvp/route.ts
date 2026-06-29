@@ -21,6 +21,7 @@ import { checkRateLimit } from "@/lib/game/anticheat";
 import { updateQuestProgress } from "@/lib/game/quests";
 import { checkAndUnlockAchievements } from "@/lib/game/achievements";
 import { checkAndUnlockBadgesTitles } from "@/lib/game/badges";
+import { trackEvent } from "@/lib/game/analytics";
 
 export async function POST(req: NextRequest) {
   try {
@@ -250,6 +251,19 @@ export async function POST(req: NextRequest) {
         }
       }
       await Promise.all(updates);
+
+      // Faz 7 (GDD 4.1): Companion ölünce 24 saat yaralı
+      // Companion HP 0'a düştüyse (combat'ta), player 24 saat INJURED olur
+      if (fullPlayer.loadout.companionItem && result.finalHpA <= 0) {
+        // Player öldüyse companion da ölür sayılır — 24 saat yaralı
+        await db.player.update({
+          where: { id: player.id },
+          data: {
+            state: "INJURED",
+            injuredUntil: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+        });
+      }
     }
 
     // XP ve level güncellemesi
@@ -326,7 +340,7 @@ export async function POST(req: NextRequest) {
     const newBadges = badgeResult.newBadges.length > 0 ? badgeResult.newBadges : undefined;
     const newTitles = badgeResult.newTitles.length > 0 ? badgeResult.newTitles : undefined;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       ok: true,
       combatId: combatLog.id,
       result: {
@@ -363,6 +377,25 @@ export async function POST(req: NextRequest) {
         level: opponent.level,
       },
     });
+
+    // Faz 7: Analitik — battle_start & battle_end
+    trackEvent({
+      playerId: player.id,
+      eventType: "battle_start",
+      data: { opponentLevel: opponent.level, opponentFaction: opponent.faction },
+    });
+    trackEvent({
+      playerId: player.id,
+      eventType: "battle_end",
+      data: {
+        won: result.playerWon,
+        rounds: result.totalRounds,
+        xpGained: xp,
+        scrapGained: scrap,
+      },
+    });
+
+    return response;
   } catch (err) {
     console.error("[combat/pvp] error", err);
     return NextResponse.json(

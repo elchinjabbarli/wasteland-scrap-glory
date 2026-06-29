@@ -79,7 +79,7 @@ export const RARITIES: Record<Rarity, {
   COMMON: {
     code: "COMMON",
     name: { tr: "Yaygın", en: "Common" },
-    color: "#9ca3af",
+    color: "#808080", // GDD: #808080
     dropChance: 60,
     statRange: [0.8, 1.0],
     order: 0,
@@ -87,7 +87,7 @@ export const RARITIES: Record<Rarity, {
   RARE: {
     code: "RARE",
     name: { tr: "Nadir", en: "Rare" },
-    color: "#3b82f6",
+    color: "#0070DD", // GDD: #0070DD
     dropChance: 25,
     statRange: [1.0, 1.3],
     order: 1,
@@ -95,7 +95,7 @@ export const RARITIES: Record<Rarity, {
   EPIC: {
     code: "EPIC",
     name: { tr: "Destansı", en: "Epic" },
-    color: "#a855f7",
+    color: "#A335EE", // GDD: #A335EE
     dropChance: 10,
     statRange: [1.3, 1.7],
     order: 2,
@@ -103,7 +103,7 @@ export const RARITIES: Record<Rarity, {
   LEGENDARY: {
     code: "LEGENDARY",
     name: { tr: "Efsanevi", en: "Legendary" },
-    color: "#f59e0b",
+    color: "#FF8000", // GDD: #FF8000
     dropChance: 5,
     statRange: [1.7, 2.5],
     order: 3,
