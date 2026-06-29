@@ -52,3 +52,10 @@ prompt
 server.log
 # Skills directory
 /skills/
+# Secrets
+.env
+.env.vercel
+.env.local
+*.db
+dev.log
+
