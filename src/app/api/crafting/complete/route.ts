@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { completeCrafting } from "@/lib/game/crafting";
+import { trackEvent } from "@/lib/game/analytics";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,16 @@ export async function POST(req: NextRequest) {
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+
+    // GDD 15.2: item_crafted event
+    if (result.success) {
+      trackEvent({
+        playerId: player.id,
+        eventType: "item_crafted",
+        data: { rarity: result.item?.rarity, name: result.item?.name },
+      });
+    }
+
     return NextResponse.json(result);
   } catch (err) {
     console.error("[crafting/complete] error", err);

@@ -146,6 +146,12 @@ export async function startExpedition(playerId: string, zoneType: ZoneType): Pro
     },
   });
 
+  // GDD 17.1: Player state = IN_EXPEDITION
+  await db.player.update({
+    where: { id: playerId },
+    data: { state: "IN_EXPEDITION" },
+  });
+
   return {
     ok: true,
     expedition: {
@@ -205,11 +211,11 @@ export async function completeExpedition(playerId: string, expeditionId: string)
     const zoneBase = expedition.zoneLevel;
     const scrapReward = Math.floor((50 + zoneBase * 10) * rewardMul);
     const techPartReward = Math.random() < (0.20 * dropMul) ? Math.floor(1 + zoneBase / 30) : 0;
+    const xpReward = Math.floor((100 + zoneBase * 5) * rewardMul);
 
     // Eşya drop
     let droppedItem: { id: string; name: string; rarity: string } | undefined;
     if (Math.random() < 0.50 * dropMul) {
-      // Bölge level'ına göre rarity bias
       let rarityHint: Rarity = "COMMON";
       const roll = Math.random();
       if (zoneBase >= 60 && roll < 0.10) rarityHint = "LEGENDARY";
@@ -270,9 +276,6 @@ export async function completeExpedition(playerId: string, expeditionId: string)
       droppedItem = { id: newItem.id, name: newItem.name, rarity: newItem.rarity };
     }
 
-    // XP ödülü (bölge level * 5)
-    const xpReward = Math.floor((100 + zoneBase * 5) * rewardMul);
-
     await db.$transaction([
       db.player.update({
         where: { id: playerId },
@@ -280,6 +283,7 @@ export async function completeExpedition(playerId: string, expeditionId: string)
           scrap: { increment: scrapReward },
           techPart: { increment: techPartReward },
           xp: { increment: xpReward },
+          state: "IDLE", // GDD 17.1: Expedition bitince IDLE
         },
       }),
       db.expedition.update({

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { watchAd } from "@/lib/game/rewards";
+import { trackEvent } from "@/lib/game/analytics";
 
 export async function POST() {
   try {
@@ -11,6 +12,14 @@ export async function POST() {
     if (!result.ok) {
       return NextResponse.json({ error: result.error, remainingWatches: result.remainingWatches }, { status: 400 });
     }
+
+    // GDD 15.2: ad_watched event
+    trackEvent({
+      playerId: player.id,
+      eventType: "ad_watched",
+      data: { scrap: result.rewards?.scrap, crystal: result.rewards?.crystal },
+    });
+
     return NextResponse.json(result);
   } catch (err) {
     console.error("[rewards/ad-watch] error", err);

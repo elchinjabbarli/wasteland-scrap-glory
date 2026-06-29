@@ -12,6 +12,7 @@ import {
   techPartDropChance,
   itemDropChanceOnLoss,
   chanceCheck,
+  rareDropBonus,
 } from "@/lib/game/stats";
 import { generateRandomItem } from "@/lib/game/loot";
 import { SLOT_INFO, MAX_DURABILITY } from "@/lib/game/constants";
@@ -126,8 +127,9 @@ export async function POST(req: NextRequest) {
         techPartGain = 1;
       }
 
-      // Eşya drop şansı (yeni eşya üretilip inventory'ye eklenir) — hava ile boost
-      if (chanceCheck(0.30 * dropMul)) {
+      // Eşya drop şansı (yeni eşya üretilip inventory'ye eklenir) — hava ile boost + LCK rareDropBonus
+      const playerLuckBonus = rareDropBonus(player.lck);
+      if (chanceCheck(0.30 * dropMul + playerLuckBonus)) {
         const generated = generateRandomItem();
         // ItemTemplate bul veya oluştur
         let template = await db.itemTemplate.findUnique({ where: { code: generated.templateCode } });

@@ -4,6 +4,7 @@
 import { db } from "@/lib/db";
 import { MAX_DURABILITY } from "./constants";
 import { updateQuestProgress } from "./quests";
+import { sellPriceBonus } from "./stats";
 
 // ============================================================
 // İLAN VERME
@@ -151,7 +152,11 @@ export async function buyListing(buyerId: string, listingId: string): Promise<Bu
   if (!buyer) return { ok: false, error: "Alıcı bulunamadı" };
 
   // Komisyon: alıcı fiyatın tamamını öder, satıcı (fiyat - komisyon) alır
-  const feeRate = listing.currency === "SCRAP" ? 0.05 : 0.03;
+  // GDD 2.2.2: CHR satış fiyatı bonusu — komisyon düşer
+  const baseFeeRate = listing.currency === "SCRAP" ? 0.05 : 0.03;
+  const seller = await db.player.findUnique({ where: { id: listing.sellerId } });
+  const chrBonus = seller ? sellPriceBonus(seller.chr) : 0; // 0.002 * chr
+  const feeRate = Math.max(0.01, baseFeeRate - chrBonus); // min %1
   const commission = Math.floor(listing.price * feeRate);
   const sellerReceives = listing.price - commission;
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { createListing, LISTING_DURATIONS } from "@/lib/game/market";
+import { trackEvent } from "@/lib/game/analytics";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +22,14 @@ export async function POST(req: NextRequest) {
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+
+    // GDD 15.2: market_listing event
+    trackEvent({
+      playerId: player.id,
+      eventType: "market_listing",
+      data: { price: parseInt(price), currency, durationHours: parseInt(durationHours) },
+    });
+
     return NextResponse.json(result);
   } catch (err) {
     console.error("[market/list] error", err);

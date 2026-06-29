@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { compilePlayerStats } from "./player-stats";
 import { simulateCombat, type CombatResult } from "./combat";
 import { generateMockOpponent } from "./player-stats";
+import { raidRewardBonus } from "./stats";
 
 // ============================================================
 // RAID BOSS TANIMLARI
@@ -228,9 +229,10 @@ export async function attackRaid(playerId: string, raidId: string): Promise<Atta
     },
   });
 
-  // XP ödülü (her saldırı)
-  const xpReward = 50 + Math.floor(totalDamage / 100);
-  const scrapReward = 20 + Math.floor(totalDamage / 200);
+  // XP ödülü (her saldırı) — GDD 2.2.2: CHR raid ödül bonusu
+  const chrRaidBonus = raidRewardBonus(player.chr);
+  const xpReward = Math.floor((50 + Math.floor(totalDamage / 100)) * (1 + chrRaidBonus));
+  const scrapReward = Math.floor((20 + Math.floor(totalDamage / 200)) * (1 + chrRaidBonus));
   await db.player.update({
     where: { id: playerId },
     data: {
