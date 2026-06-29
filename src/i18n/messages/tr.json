@@ -6,8 +6,9 @@
   "nav": {
     "home": "Ana Sayfa",
     "battle": "Savaş",
-    "inventory": "Envanter",
+    "explore": "Keşfet",
     "profile": "Profil",
+    "inventory": "Envanter",
     "crafting": "Üretim",
     "upgrade": "Yükselt",
     "market": "Pazar",
@@ -19,7 +20,8 @@
     "clan": "Klan",
     "raid": "Raid",
     "social": "Sosyal",
-    "globalBoss": "Global Boss"
+    "globalBoss": "Global Boss",
+    "badges": "Rozetler"
   },
   "auth": {
     "login": "Giriş Yap",
@@ -469,8 +471,5 @@
     "bossBoost": "Boss Boost",
     "dropFestival": "Drop Festivali",
     "fastCraft": "Hızlı Crafting"
-  },
-  "nav": {
-    "badges": "Rozetler"
   }
 }

@@ -28,6 +28,7 @@ import { Tutorial } from "@/components/game/tutorial";
 import { SettingsView } from "@/components/game/settings-view";
 import { StreakBanner } from "@/components/game/streak-banner";
 import { TournamentView } from "@/components/game/tournament-view";
+import { ExploreView } from "@/components/game/explore-view";
 import { NavBar } from "@/components/game/nav-bar";
 import { RewardsBar } from "@/components/game/rewards-bar";
 import { WeatherBanner } from "@/components/game/weather-banner";
@@ -161,6 +162,7 @@ export default function HomePage() {
       <main className="flex-1 pb-20 pt-2">
         {view === "dashboard" && <Dashboard />}
         {view === "battle" && <BattleArena />}
+        {view === "explore" && <ExploreView />}
         {view === "inventory" && <InventoryView />}
         {view === "crafting" && <CraftingView />}
         {view === "upgrade" && <UpgradeView />}

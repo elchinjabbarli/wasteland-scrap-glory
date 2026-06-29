@@ -138,26 +138,17 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
         </div>
       </PixelPanel>
 
-      {/* MENÜ — tüm ikincil sayfalara erişim */}
+      {/* MENÜ — profil/metadata ilgili sayfalar */}
       <PixelPanel className="p-3">
         <h3 className="text-xs font-bold text-accent uppercase mb-2">
           {locale === "tr" ? "Menü" : "Menu"}
         </h3>
         <div className="grid grid-cols-4 gap-2">
           {([
-            { key: "expedition", icon: MapPin, label: locale === "tr" ? "Sefer" : "Expedition" },
-            { key: "crafting", icon: Hammer, label: locale === "tr" ? "Üretim" : "Craft" },
-            { key: "upgrade", icon: Sparkles, label: locale === "tr" ? "Yükselt" : "Upgrade" },
-            { key: "market", icon: Store, label: locale === "tr" ? "Pazar" : "Market" },
-            { key: "clan", icon: Users, label: locale === "tr" ? "Klan" : "Clan" },
-            { key: "raid", icon: Skull, label: locale === "tr" ? "Raid" : "Raid", hide: !player.clanId },
-            { key: "globalBoss", icon: Globe, label: locale === "tr" ? "Boss" : "Boss" },
-            { key: "tournament", icon: Trophy, label: locale === "tr" ? "Turnuva" : "Tournament" },
-            { key: "quests", icon: Gift, label: locale === "tr" ? "Görevler" : "Quests" },
+            { key: "badges", icon: Award, label: locale === "tr" ? "Rozetler" : "Badges" },
             { key: "achievements", icon: Trophy, label: locale === "tr" ? "Başarımlar" : "Achivs" },
             { key: "leaderboard", icon: Crown, label: locale === "tr" ? "Liderlik" : "Ranks" },
             { key: "social", icon: Heart, label: locale === "tr" ? "Sosyal" : "Social" },
-            { key: "badges", icon: Award, label: locale === "tr" ? "Rozetler" : "Badges" },
             { key: "prestige", icon: Star, label: locale === "tr" ? "Prestij" : "Prestige" },
             { key: "settings", icon: Settings, label: locale === "tr" ? "Ayarlar" : "Settings" },
           ] as { key: GameView; icon: React.ComponentType<{ className?: string }>; label: string; hide?: boolean }[])

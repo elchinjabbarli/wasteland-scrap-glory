@@ -6,8 +6,9 @@
   "nav": {
     "home": "Home",
     "battle": "Battle",
-    "inventory": "Inventory",
+    "explore": "Explore",
     "profile": "Profile",
+    "inventory": "Inventory",
     "crafting": "Crafting",
     "upgrade": "Upgrade",
     "market": "Market",
@@ -19,7 +20,8 @@
     "clan": "Clan",
     "raid": "Raid",
     "social": "Social",
-    "globalBoss": "Global Boss"
+    "globalBoss": "Global Boss",
+    "badges": "Badges"
   },
   "auth": {
     "login": "Log In",
@@ -469,8 +471,5 @@
     "bossBoost": "Boss Boost",
     "dropFestival": "Drop Festival",
     "fastCraft": "Fast Crafting"
-  },
-  "nav": {
-    "badges": "Badges"
   }
 }

@@ -2,18 +2,18 @@
 
 import { useGameStore, type GameView } from "@/store/game-store";
 import { useI18n } from "@/i18n/request";
-import { Home, Swords, Backpack, User } from "lucide-react";
+import { Home, Swords, Compass, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavBarProps {
   className?: string;
 }
 
-// SADECE 4 buton — mobil için temiz
+// 4 buton: Ana Sayfa, Savaş, Keşfet, Profil
 const NAV_ITEMS: { key: GameView; icon: React.ComponentType<{ className?: string }>; labelKey: string }[] = [
   { key: "dashboard", icon: Home, labelKey: "nav.home" },
   { key: "battle", icon: Swords, labelKey: "nav.battle" },
-  { key: "inventory", icon: Backpack, labelKey: "nav.inventory" },
+  { key: "explore", icon: Compass, labelKey: "nav.explore" },
   { key: "profile", icon: User, labelKey: "nav.profile" },
 ];
 

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-export type GameView = "dashboard" | "battle" | "inventory" | "profile" | "crafting" | "upgrade" | "market" | "prestige" | "expedition" | "achievements" | "quests" | "leaderboard" | "stats" | "clan" | "raid" | "social" | "globalBoss" | "badges" | "settings" | "tournament";
+export type GameView = "dashboard" | "battle" | "explore" | "profile" | "inventory" | "crafting" | "upgrade" | "market" | "prestige" | "expedition" | "achievements" | "quests" | "leaderboard" | "stats" | "clan" | "raid" | "social" | "globalBoss" | "badges" | "settings" | "tournament";
 
 export interface PlayerData {
   id: string;
