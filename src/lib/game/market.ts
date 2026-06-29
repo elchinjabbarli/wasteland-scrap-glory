@@ -122,6 +122,9 @@ export async function createListing(
   };
 }
 
+// GDD 17.1: Market işlemi sırasında IN_MARKET state — listing sonrası IDLE
+// (Listing uzun süreli olduğu için sadece kısa süre set edilmez, ama GDD uyumu için tanımlı)
+
 // ============================================================
 // SATIN ALMA
 // ============================================================

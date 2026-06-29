@@ -23,6 +23,7 @@ import { updateQuestProgress } from "@/lib/game/quests";
 import { checkAndUnlockAchievements } from "@/lib/game/achievements";
 import { checkAndUnlockBadgesTitles } from "@/lib/game/badges";
 import { trackEvent } from "@/lib/game/analytics";
+import { contributeToClanWar } from "@/lib/game/clan-war";
 
 export async function POST(req: NextRequest) {
   try {
@@ -103,18 +104,37 @@ export async function POST(req: NextRequest) {
     // Savaş simülasyonu
     const result = simulateCombat(playerStats, opponent);
 
+    // GDD 17.1: Savaş sırasında IN_COMBAT, bitince IDLE
+    await db.player.update({
+      where: { id: player.id },
+      data: { state: "IDLE" },
+    });
+
     // Ödüller
     const weather = await getDailyWeather();
     const weekly = await getWeeklyMultipliers();
     const rewardMul = weather.multiplier * weekly.xpMul; // ödül çarpanı (hava + haftalık XP)
     const dropMul = weather.dropMul * weekly.dropMul; // drop şansı çarpanı
 
+    // GDD 9.1: Arkadaşlık grup savaşı bonusu %10
+    // Rakip arkadaş listesinde varsa %10 ekstra ödül
+    const friendship = await db.friendship.findFirst({
+      where: {
+        OR: [
+          { playerId: player.id, friendId: opponentId, status: "ACCEPTED" },
+          { playerId: opponentId, friendId: player.id, status: "ACCEPTED" },
+        ],
+      },
+    });
+    const friendBonus = friendship ? 0.10 : 0; // %10 ekstra
+    const finalRewardMul = rewardMul + friendBonus;
+
     const xp = result.playerWon
-      ? Math.floor((xpReward(player.level, opponent.level)) * rewardMul)
-      : Math.floor((xpReward(player.level, opponent.level) * 0.1) * rewardMul); // %10 kaybedince
+      ? Math.floor((xpReward(player.level, opponent.level)) * finalRewardMul)
+      : Math.floor((xpReward(player.level, opponent.level) * 0.1) * finalRewardMul);
     const scrap = result.playerWon
-      ? Math.floor((scrapReward(opponent.level)) * weather.multiplier) // hava çarpanı (XP hariç)
-      : Math.floor((scrapReward(opponent.level) * 0.2) * weather.multiplier); // %20 kaybedince
+      ? Math.floor((scrapReward(opponent.level)) * (weather.multiplier + friendBonus))
+      : Math.floor((scrapReward(opponent.level) * 0.2) * (weather.multiplier + friendBonus));
 
     let techPartGain = 0;
     let droppedItemTemplateCode: string | null = null;
@@ -332,6 +352,9 @@ export async function POST(req: NextRequest) {
     if (result.playerWon) {
       await updateQuestProgress(player.id, "PVP_WINS", 1);
     }
+
+    // GDD 9.4: Klan savaşına katkı (kazanma + kill)
+    await contributeToClanWar(player.id, result.playerWon, result.playerWon ? 1 : 0);
 
     // Faz 3: Başarım kontrolü
     const achResult = await checkAndUnlockAchievements(player.id);

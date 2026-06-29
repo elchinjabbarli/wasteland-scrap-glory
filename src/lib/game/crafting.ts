@@ -128,6 +128,12 @@ export async function startCrafting(
     },
   });
 
+  // GDD 17.1: Player state = IN_CRAFTING
+  await db.player.update({
+    where: { id: playerId },
+    data: { state: "IN_CRAFTING" },
+  });
+
   return {
     ok: true,
     job: {
@@ -240,6 +246,12 @@ export async function completeCrafting(playerId: string, jobId: string): Promise
         resultItemId: newItem.id,
         completedAt: now,
       },
+    });
+
+    // GDD 17.1: Crafting bitince IDLE
+    await db.player.update({
+      where: { id: playerId },
+      data: { state: "IDLE" },
     });
 
     // Faz 3: Başarımlar items_crafted sayar (checkAndUnlockAchievements çağrıldığında)

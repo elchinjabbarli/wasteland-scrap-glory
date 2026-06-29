@@ -193,6 +193,56 @@ export const sfx = {
 };
 
 // ============================================================
+// AMBIENT MÜZİK — GDD 10.4: Ambient, karanlık (CC0, prosedürel)
+// ============================================================
+
+let ambientOsc: OscillatorNode | null = null;
+let ambientGain: GainNode | null = null;
+let ambientPlaying = false;
+
+/** Ambient müzik başlat — düşük frekanslı drone (karanlık atmosfer) */
+export function startAmbientMusic(): void {
+  if (!soundEnabled || ambientPlaying) return;
+  const ctx = getCtx();
+  if (!ctx) return;
+
+  // Düşük frekanslı drone (karanlık, ambient)
+  ambientOsc = ctx.createOscillator();
+  ambientGain = ctx.createGain();
+
+  ambientOsc.type = "sine";
+  ambientOsc.frequency.setValueAtTime(55, ctx.currentTime); // A1 — çok düşük
+  ambientGain.gain.setValueAtTime(0, ctx.currentTime);
+  ambientGain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 2); // yavaş giriş
+
+  ambientOsc.connect(ambientGain);
+  ambientGain.connect(ctx.destination);
+
+  ambientOsc.start();
+  ambientPlaying = true;
+}
+
+/** Ambient müzik durdur */
+export function stopAmbientMusic(): void {
+  if (ambientOsc && ambientGain) {
+    const ctx = getCtx();
+    if (ctx) {
+      ambientGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+      setTimeout(() => {
+        try { ambientOsc?.stop(); } catch {}
+        ambientOsc = null;
+        ambientGain = null;
+        ambientPlaying = false;
+      }, 1000);
+    }
+  }
+}
+
+export function isAmbientPlaying(): boolean {
+  return ambientPlaying;
+}
+
+// ============================================================
 // SES AÇMA/KAPAMA HOOK
 // ============================================================
 
@@ -202,6 +252,8 @@ export function useSoundToggle() {
     setSoundEnabled(newState);
     if (newState) {
       sfx.uiClick();
+    } else {
+      stopAmbientMusic();
     }
     return newState;
   };

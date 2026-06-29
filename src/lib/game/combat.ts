@@ -10,6 +10,7 @@ import {
 import {
   physicalDamage,
   energyDamage,
+  maxEnergy,
   critChance as calcCritChance,
   evasionChance as calcEvasion,
   elementMultiplier,
@@ -76,6 +77,11 @@ export interface CombatantState {
   isStunned: boolean;
   isFrozen: boolean;
   isPlayer: boolean;
+  // GDD 2.2.1: Enerji sistemi — enerji silahları enerji tüketir
+  maxEnergy: number;
+  currentEnergy: number;
+  isEnergyWeapon: boolean; // FIRE/ICE element silahlar enerji kullanır
+  energyDepleted: boolean; // enerji 0'a düştü mü
 }
 
 export interface RoundLog {
@@ -114,6 +120,7 @@ export interface CombatResult {
 // ============================================================
 
 function toCombatant(stats: CompiledPlayerStats, isPlayer: boolean): CombatantState {
+  const isEnergyWeapon = ["FIRE", "ICE"].includes(stats.activeElement);
   return {
     id: stats.playerId,
     name: stats.name,
@@ -131,7 +138,7 @@ function toCombatant(stats: CompiledPlayerStats, isPlayer: boolean): CombatantSt
     critChance: stats.critChance,
     evasionChance: stats.evasionChance,
     attackSpeed: stats.attackSpeed,
-    weaponDamage: stats.weapon?.damage ?? 5, // silah yoksa yumruk
+    weaponDamage: stats.weapon?.damage ?? 5,
     weaponElement: stats.activeElement,
     armorValue: stats.armor?.armor ?? 0,
     companionHp: stats.companion?.companionHp ?? 0,
@@ -141,10 +148,15 @@ function toCombatant(stats: CompiledPlayerStats, isPlayer: boolean): CombatantSt
     isStunned: false,
     isFrozen: false,
     isPlayer,
+    maxEnergy: maxEnergy(stats.int),
+    currentEnergy: maxEnergy(stats.int),
+    isEnergyWeapon,
+    energyDepleted: false,
   };
 }
 
 function toCombatantFromMock(mock: MockOpponent, isPlayer: boolean): CombatantState {
+  const isEnergyWeapon = ["FIRE", "ICE"].includes(mock.activeElement);
   return {
     id: mock.id,
     name: mock.name,
@@ -172,6 +184,10 @@ function toCombatantFromMock(mock: MockOpponent, isPlayer: boolean): CombatantSt
     isStunned: false,
     isFrozen: false,
     isPlayer,
+    maxEnergy: maxEnergy(mock.int),
+    currentEnergy: maxEnergy(mock.int),
+    isEnergyWeapon,
+    energyDepleted: false,
   };
 }
 
@@ -283,11 +299,23 @@ function performAttack(
     };
   }
 
-  // Base damage hesabı
-  const isEnergyWeapon = ["FIRE", "ICE"].includes(attacker.weaponElement);
-  const baseDmg = isEnergyWeapon
+  // Base damage hesabı — GDD 2.2.1: Enerji silahları enerji tüketir
+  // Enerji silahı (FIRE/ICE) ama enerji 0 ise → fiziksel hasara düş (zayıf yumruk)
+  let actualIsEnergy = attacker.isEnergyWeapon && attacker.currentEnergy > 0;
+  let energyCost = 0;
+
+  if (actualIsEnergy) {
+    // Her saldırıda 5 enerji tüket
+    energyCost = Math.min(5, attacker.currentEnergy);
+    attacker.currentEnergy = Math.max(0, attacker.currentEnergy - energyCost);
+    if (attacker.currentEnergy === 0) {
+      attacker.energyDepleted = true;
+    }
+  }
+
+  const baseDmg = actualIsEnergy
     ? energyDamage(attacker.weaponDamage, attacker.int)
-    : physicalDamage(attacker.weaponDamage, attacker.str);
+    : physicalDamage(attacker.weaponDamage, actualIsEnergy ? Math.floor(attacker.str * 0.5) : attacker.str); // enerji bitince zayıf fiziksel
 
   // Prestige bonus (sadece player için) — GDD 8.2: Kalıcı +%2 Hasar
   const prestMul = attacker.isPlayer ? prestigeMultiplier(attacker.prestige) : 1;
@@ -348,6 +376,9 @@ function performAttack(
 
   // Log metni
   let logText = `Tur ${round}: ${attacker.name} ${weaponName} ile saldırıyor. `;
+  if (attacker.energyDepleted && attacker.isEnergyWeapon) {
+    logText += `⚡ Enerji tükendi! Zayıf fiziksel saldırı. `;
+  }
   if (isEvaded) {
     logText += `${defender.name} saldırıyı boşalttı!`;
   } else {

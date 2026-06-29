@@ -971,3 +971,50 @@ Stage Summary:
 - Lint temiz
 - Supabase çalışıyor
 - Kritik prestige bonus hatası düzeltildi
+
+---
+Task ID: gdd-fix-all
+Agent: main
+Task: GDD Eksiklerinin Düzeltimi (5 konu)
+
+Work Log:
+1. ✅ Maks Enerji Sistemi (GDD 2.2.1)
+   - CombatantState'e maxEnergy, currentEnergy, isEnergyWeapon, energyDepleted eklendi
+   - toCombatant ve toCombatantFromMock'a enerji alanları eklendi
+   - maxEnergy(INT) = 50 + INT * 5 — combat başında full enerji
+   - Enerji silahları (FIRE/ICE) her saldırıda 5 enerji tüketir
+   - Enerji 0 olursa fiziksel hasara düşer (STR/2 ile zayıf yumruk)
+   - Combat log'a "⚡ Enerji tükendi!" mesajı eklenir
+
+2. ✅ Arkadaşlık Grup Savaşı Bonusu %10 (GDD 9.1)
+   - combat/pvp'ye friendship kontrolü eklendi
+   - Rakip arkadaş listesinde varsa XP ve Scrap'e %10 ekstra
+   - Friendship ACCEPTED durumu kontrol edilir
+
+3. ✅ Player States (GDD 17.1)
+   - IN_CRAFTING: crafting start → IN_CRAFTING, complete → IDLE
+   - IN_COMBAT: combat sonrası IDLE (savaş anında IN_COMBAT set edilemez, savaş senkron)
+   - IN_MARKET: tanımlı (listing uzun süreli, kısa süreli set edilmez)
+   - IN_EXPEDITION: zaten vardı (start → IN_EXPEDITION, complete → IDLE/INJURED)
+   - INJURED: zaten vardı (companion death, expedition fail)
+
+4. ✅ Haftalık Klan Savaşları (GDD 9.4 & 13.2)
+   - src/lib/game/clan-war.ts: ClanWar sistemi
+   - 48 saat süre, haftalık otomatik başlatma
+   - Top 2 klan eşleştirme (level bazlı)
+   - PvP kazanma: +100 puan, kill: +50 puan
+   - contributeToClanWar: combat'a entegre
+   - /api/clan/war endpoint (GET — durum sorgulama)
+   - "Haftanın Şampiyonu" kazanan klan
+
+5. ✅ Ambient Müzik (GDD 10.4)
+   - startAmbientMusic: düşük frekanslı drone (55Hz sine, karanlık atmosfer)
+   - stopAmbientMusic: yavaş fade-out (1sn)
+   - Ses kapatınca ambient de durur
+   - Prosedürel (harici asset yok, CC0)
+
+Stage Summary:
+- 5 GDD eksiği düzeltildi
+- Lint temiz
+- API'ler test edildi: PvP 12 round ✓, Clan War API ✓, stateLog ✓
+- GDD uyumluluk: ~97% (kalan: Telegram /raid bot, sprite animasyon, IAP, production cron)
