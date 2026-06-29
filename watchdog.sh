@@ -1,8 +1,6 @@
 #!/bin/bash
-# Dev server watchdog with Supabase env injection
-# Prisma's .env parser breaks on URL-encoded passwords, so we inject env directly
-
 export DATABASE_URL='postgresql://postgres.bxunjxcfjxoaolqhziox:Qaz_el%401994%21@aws-1-eu-central-1.pooler.supabase.com:5432/postgres'
+export TELEGRAM_BOT_TOKEN='8838138835:AAHANAZYLXtwfAFdLddeDgSyrKf4sHseLxI'
 
 cd /home/z/my-project
 
