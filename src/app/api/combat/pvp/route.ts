@@ -351,6 +351,7 @@ export async function POST(req: NextRequest) {
         finalHpA: result.finalHpA,
         finalHpB: result.finalHpB,
         rounds: result.rounds,
+        stateLog: result.stateLog,
       },
       rewards: {
         xp,

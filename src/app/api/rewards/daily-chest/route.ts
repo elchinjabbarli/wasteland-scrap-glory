@@ -10,12 +10,21 @@ export async function GET() {
   return NextResponse.json(status);
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
     const player = await getCurrentPlayer();
     if (!player) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const result = await claimDailyChest(player.id);
+    // GDD 13.1: Reklam ile 2x — body'den withAd parametresi al
+    let withAd = false;
+    try {
+      const body = await req.json();
+      withAd = body?.withAd === true;
+    } catch {
+      // body yoksa normal sandık
+    }
+
+    const result = await claimDailyChest(player.id, withAd);
     if (!result.ok) {
       return NextResponse.json({ error: result.error, nextClaimAt: result.nextClaimAt }, { status: 400 });
     }

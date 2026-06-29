@@ -39,17 +39,26 @@ export function RewardsBar() {
     return () => clearInterval(interval);
   }, [load]);
 
-  async function handleClaimChest() {
+  async function handleClaimChest(withAd: boolean = false) {
     setClaimingChest(true);
     try {
-      const res = await fetch("/api/rewards/daily-chest", { method: "POST" });
+      if (withAd) {
+        // Mock reklam: 1.5s bekle
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      const res = await fetch("/api/rewards/daily-chest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ withAd }),
+      });
       const data = await res.json();
       if (!res.ok) {
         toast({ title: t("errors.generic"), description: data.error, variant: "destructive" });
       } else {
         const r = data.rewards;
+        const doubledText = r.doubled ? " ⚡ 2x!" : "";
         toast({
-          title: "🎁 " + t("rewards.dailyChest"),
+          title: "🎁 " + t("rewards.dailyChest") + doubledText,
           description: `+${r.scrap} Hurda${r.electronic > 0 ? ` +${r.electronic} Elektronik` : ""}${r.techPart > 0 ? ` +${r.techPart} Tech-Part` : ""}${r.crystal > 0 ? ` +${r.crystal} Kristal` : ""}`,
         });
         const meRes = await fetch("/api/auth/me");
@@ -100,13 +109,13 @@ export function RewardsBar() {
 
   return (
     <div className="px-3 sm:px-4 max-w-4xl mx-auto pb-2">
-      <div className="grid grid-cols-2 gap-2">
-        {/* Günlük Sandık */}
+      <div className={`grid ${status.dailyChest.canClaim ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
+        {/* Günlük Sandık — Normal */}
         <Button
-          onClick={handleClaimChest}
+          onClick={() => handleClaimChest(false)}
           disabled={!status.dailyChest.canClaim || claimingChest}
           className={cn(
-            "pixel-button h-12 font-pixel uppercase tracking-wider text-xs",
+            "pixel-button h-12 font-pixel uppercase tracking-wider text-[10px]",
             status.dailyChest.canClaim
               ? "bg-accent text-accent-foreground hover:bg-accent/90"
               : "bg-card text-muted-foreground border-2 border-border"
@@ -122,12 +131,24 @@ export function RewardsBar() {
             : t("rewards.chestCooldown", { hours: chestHours })}
         </Button>
 
+        {/* Günlük Sandık — Reklam 2x (GDD 13.1) */}
+        {status.dailyChest.canClaim && (
+          <Button
+            onClick={() => handleClaimChest(true)}
+            disabled={claimingChest}
+            className="pixel-button h-12 font-pixel uppercase tracking-wider text-[10px] bg-yellow-500/20 text-yellow-500 border-2 border-yellow-500 hover:bg-yellow-500/30"
+          >
+            {claimingChest ? <Loader2 className="w-3 h-3 animate-spin" /> : <Tv className="w-3 h-3" />}
+            2x Reklam
+          </Button>
+        )}
+
         {/* Reklam İzle */}
         <Button
           onClick={handleWatchAd}
           disabled={status.adWatch.remaining === 0 || watchingAd}
           className={cn(
-            "pixel-button h-12 font-pixel uppercase tracking-wider text-xs",
+            "pixel-button h-12 font-pixel uppercase tracking-wider text-[10px]",
             status.adWatch.remaining > 0
               ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : "bg-card text-muted-foreground border-2 border-border"

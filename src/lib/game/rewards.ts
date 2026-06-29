@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 // ============================================================
 
 export const DAILY_CHEST_COOLDOWN_HOURS = 20;
+export const DAILY_CHEST_AD_DOUBLE = true; // GDD 13.1: Reklam ile 2x yapılabilir
 
 export interface DailyChestResult {
   ok: boolean;
@@ -15,12 +16,14 @@ export interface DailyChestResult {
     electronic: number;
     techPart: number;
     crystal: number;
+    doubled?: boolean; // reklam ile 2x
   };
   nextClaimAt?: Date;
   error?: string;
 }
 
-export async function claimDailyChest(playerId: string): Promise<DailyChestResult> {
+/** Sandık aç — withAd parametresi ile 2x ödül (GDD 13.1) */
+export async function claimDailyChest(playerId: string, withAd: boolean = false): Promise<DailyChestResult> {
   const player = await db.player.findUnique({ where: { id: playerId } });
   if (!player) return { ok: false, error: "Player bulunamadı" };
 
@@ -40,12 +43,24 @@ export async function claimDailyChest(playerId: string): Promise<DailyChestResul
 
   // Ödül rastgele (level'e ölçekli)
   const level = player.level;
-  const rewards = {
+  let rewards = {
     scrap: 50 + level * 5 + Math.floor(Math.random() * 50),
     electronic: Math.floor(level / 5) + Math.floor(Math.random() * 3),
     techPart: Math.random() < 0.3 ? 1 : 0, // %30 şans
     crystal: Math.random() < 0.1 ? 1 : 0, // %10 şans
+    doubled: false,
   };
+
+  // GDD 13.1: Reklam ile 2x
+  if (withAd && DAILY_CHEST_AD_DOUBLE) {
+    rewards = {
+      scrap: rewards.scrap * 2,
+      electronic: rewards.electronic * 2,
+      techPart: rewards.techPart * 2,
+      crystal: rewards.crystal * 2,
+      doubled: true,
+    };
+  }
 
   await db.player.update({
     where: { id: playerId },

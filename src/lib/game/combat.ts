@@ -20,6 +20,26 @@ import {
 import type { CompiledPlayerStats, MockOpponent } from "./player-stats";
 
 // ============================================================
+// COMBAT STATES (GDD 17.2)
+// ============================================================
+
+export type CombatState =
+  | "WAITING"
+  | "ROUND_START"
+  | "ATTACK_PHASE"
+  | "DEFENSE_PHASE"
+  | "STATUS_EFFECT_PHASE"
+  | "ROUND_END"
+  | "COMBAT_END";
+
+export interface CombatStateLog {
+  state: CombatState;
+  round: number;
+  description: string;
+  timestamp: number;
+}
+
+// ============================================================
 // TİPLER
 // ============================================================
 
@@ -82,6 +102,7 @@ export interface CombatResult {
   totalRounds: number;
   durationMs: number;
   rounds: RoundLog[];
+  stateLog: CombatStateLog[];
   finalHpA: number;
   finalHpB: number;
   playerWon: boolean;
@@ -383,10 +404,14 @@ export function simulateCombat(
   }
 
   const rounds: RoundLog[] = [];
+  const stateLog: CombatStateLog[] = [];
   let round = 1;
   let lastAttackerId: string | null = null;
 
+  stateLog.push({ state: "WAITING", round: 0, description: "Savaş bekleniyor...", timestamp: Date.now() });
+
   while (round <= MAX_COMBAT_ROUNDS && combatantA.currentHp > 0 && combatantB.currentHp > 0) {
+    stateLog.push({ state: "ROUND_START", round, description: `Tur ${round} başlıyor`, timestamp: Date.now() });
     // Hız kontrolü: attackSpeed yüksek olan önce saldırır
     const aSpeed = combatantA.attackSpeed * (hasEffect(combatantA, "HASTE") ? 1.2 : 1) * (hasEffect(combatantA, "BURN") ? 0.9 : 1);
     const bSpeed = combatantB.attackSpeed * (hasEffect(combatantB, "HASTE") ? 1.2 : 1) * (hasEffect(combatantB, "BURN") ? 0.9 : 1);
@@ -434,22 +459,30 @@ export function simulateCombat(
     }
 
     // Status effect tick (tur başında)
+    stateLog.push({ state: "STATUS_EFFECT_PHASE", round, description: "Durum etkileri işleniyor", timestamp: Date.now() });
     const aTicks = tickEffects(combatantA, round);
     const bTicks = tickEffects(combatantB, round);
 
     // Saldırı
+    stateLog.push({ state: "ATTACK_PHASE", round, description: `${attacker.name} saldırıyor`, timestamp: Date.now() });
     const attackLog = performAttack(attacker, defender, round, attackerWeaponName, seed);
     attackLog.effectsTicked = attackerSide === "A" ? bTicks : aTicks;
+
+    stateLog.push({ state: "DEFENSE_PHASE", round, description: `${defender.name} savunuyor`, timestamp: Date.now() });
 
     rounds.push(attackLog);
 
     // Karşı taraf hala hayattaysa, o da saldırsın (sıra değişimi) — bunu hız kontrolü zaten yapıyor
     // Ama her round'da sadece 1 saldırı olsun (hızlı tempolu)
+
+    stateLog.push({ state: "ROUND_END", round, description: `Tur ${round} bitti`, timestamp: Date.now() });
     round++;
 
     // Companion ölüm kontrolü (her round)
     // Not: companion HP şu an basitçe azalmıyor; Faz 2'de kompleks hale gelir
   }
+
+  stateLog.push({ state: "COMBAT_END", round, description: "Savaş bitti", timestamp: Date.now() });
 
   // Sonuç
   const playerWon = combatantB.currentHp <= 0 && combatantA.currentHp > 0;
@@ -468,6 +501,7 @@ export function simulateCombat(
         totalRounds: round - 1,
         durationMs: Date.now() - startTime,
         rounds,
+        stateLog,
         finalHpA: combatantA.currentHp,
         finalHpB: combatantB.currentHp,
         playerWon: true,
@@ -480,6 +514,7 @@ export function simulateCombat(
         totalRounds: round - 1,
         durationMs: Date.now() - startTime,
         rounds,
+        stateLog,
         finalHpA: combatantA.currentHp,
         finalHpB: combatantB.currentHp,
         playerWon: false,
@@ -494,6 +529,7 @@ export function simulateCombat(
     totalRounds: round - 1,
     durationMs: Date.now() - startTime,
     rounds,
+    stateLog,
     finalHpA: combatantA.currentHp,
     finalHpB: combatantB.currentHp,
     playerWon,
