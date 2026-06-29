@@ -10,6 +10,7 @@ import { CurrencyDisplay } from "./currency-display";
 import { Button } from "@/components/ui/button";
 import { Swords, Backpack, User, Zap, Heart, Crosshair, Shield as ShieldIcon, MapPin, Hammer, Clock } from "lucide-react";
 import { maxHp, critChance, evasionChance, attackSpeedMultiplier } from "@/lib/game/stats";
+import { PixelAvatar } from "./pixel-avatar";
 
 interface ActiveExpedition {
   id: string;
@@ -78,7 +79,7 @@ export function Dashboard() {
       {/* Üst bar: karakter */}
       <PixelPanel glow="rust" className="p-3 sm:p-4">
         <div className="flex items-center gap-3 sm:gap-4">
-          <FactionIcon faction={faction} size="lg" />
+          <PixelAvatar faction={faction} size="lg" state="idle" />
           <div className="flex-1 min-w-0">
             <h2 className="font-pixel text-base sm:text-xl font-bold text-foreground truncate">
               {player.name}

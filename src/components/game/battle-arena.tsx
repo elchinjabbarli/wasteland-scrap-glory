@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { FACTIONS, ELEMENTS } from "@/lib/game/constants";
 import { maxHp } from "@/lib/game/stats";
 import { pushNotification } from "./notification-overlay";
+import { PixelAvatar } from "./pixel-avatar";
 
 type Phase = "loadout" | "match" | "sim" | "result";
 
@@ -364,10 +365,8 @@ function SimPhase() {
         <div className="grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-4 items-center mb-4">
           {/* Player */}
           <div className="text-center">
-            <div className="flex justify-center mb-1">
-              <FactionIcon faction={player.faction} size="md" />
-            </div>
-            <div className="font-pixel font-bold text-xs sm:text-sm text-foreground truncate">{player.name}</div>
+            <PixelAvatar faction={player.faction} size="lg" state={hpA <= 0 ? "death" : hpA < maxHpA * 0.3 ? "damage" : "idle"} />
+            <div className="font-pixel font-bold text-xs sm:text-sm text-foreground truncate mt-1">{player.name}</div>
             <div className="text-[9px] text-muted-foreground uppercase">Sv {player.level}</div>
             <div className="mt-1">
               <StatBar label="HP" value={hpA} max={maxHpA} color="var(--accent)" size="sm" />
@@ -378,10 +377,8 @@ function SimPhase() {
 
           {/* Opponent */}
           <div className="text-center">
-            <div className="flex justify-center mb-1">
-              <FactionIcon faction={selectedOpponent.faction} size="md" />
-            </div>
-            <div className="font-pixel font-bold text-xs sm:text-sm text-foreground truncate">{selectedOpponent.name}</div>
+            <PixelAvatar faction={selectedOpponent.faction} size="lg" state={hpB <= 0 ? "death" : hpB < maxHpB * 0.3 ? "damage" : "idle"} />
+            <div className="font-pixel font-bold text-xs sm:text-sm text-foreground truncate mt-1">{selectedOpponent.name}</div>
             <div className="text-[9px] text-muted-foreground uppercase">Sv {selectedOpponent.level}</div>
             <div className="mt-1">
               <StatBar label="HP" value={hpB} max={maxHpB} color="var(--destructive)" size="sm" />

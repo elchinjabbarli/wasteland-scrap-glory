@@ -15,6 +15,7 @@ import { STAT_INFO, STAT_KEYS, type StatKey } from "@/lib/game/prestige";
 import { TITLES } from "@/lib/game/badges";
 import { Loader2, Trophy, Skull, Swords, Plus, Award, Star, Lock } from "lucide-react";
 import * as Icons from "lucide-react";
+import { PixelAvatar } from "./pixel-avatar";
 
 interface HistoryEntry {
   id: string;
@@ -95,7 +96,7 @@ export function ProfileView({ onAllocateClick }: { onAllocateClick?: () => void 
       {/* Karakter kartı */}
       <PixelPanel glow="rust" className="p-3 sm:p-4">
         <div className="flex items-center gap-3 sm:gap-4">
-          <FactionIcon faction={player.faction} size="lg" />
+          <PixelAvatar faction={player.faction} size="lg" state="idle" />
           <div className="flex-1 min-w-0">
             <h2 className="font-pixel text-base sm:text-xl font-bold text-foreground truncate">{player.name}</h2>
             <div className="text-[10px] sm:text-xs text-muted-foreground font-pixel uppercase tracking-wider mt-0.5">
